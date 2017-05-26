@@ -38,7 +38,7 @@ NS_ASSUME_NONNULL_BEGIN
 
 @property (weak, nonatomic, nullable) id <SCWebBrowserViewDelegate> delegate;
 
-- (instancetype)initWithFrame:(CGRect)frame configuration:(WKWebViewConfiguration *)configuration NS_DESIGNATED_INITIALIZER;
+- (instancetype)initWithFrame:(CGRect)frame configuration:(nullable WKWebViewConfiguration *)configuration NS_DESIGNATED_INITIALIZER;
 
 
 // Loads a `NSURLURLRequest` to web view

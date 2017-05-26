@@ -12,7 +12,7 @@
 
 @interface ViewController ()
 
-@property (weak, nonatomic) IBOutlet SCWebBrowserView *webViewWrapperView;
+@property (weak, nonatomic) IBOutlet SCWebBrowserView *webBrowserView;
 
 @end
 
@@ -23,6 +23,7 @@ static NSString *const defaultAddress = @"https://www.apple.com";
 - (void)viewDidLoad {
     [super viewDidLoad];
     
+    [self.webBrowserView loadURLString:defaultAddress];
     
 }
 
