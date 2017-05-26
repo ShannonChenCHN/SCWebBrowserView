@@ -1,18 +1,18 @@
 //
-//  SCWebViewWrapperView.m
-//  SCWebViewWrapperView
+//  SCWebBrowserView.m
+//  SCWebBrowserView
 //
 //  Created by ShannonChen on 2017/5/24.
 //  Copyright © 2017年 ShannonChen. All rights reserved.
 //
 
-#import "SCWebViewWrapperView.h"
+#import "SCWebBrowserView.h"
 
-@interface SCWebViewWrapperView ()
+@interface SCWebBrowserView ()
 
 @end
 
-@implementation SCWebViewWrapperView
+@implementation SCWebBrowserView
 
 - (instancetype)initWithFrame:(CGRect)frame {
     return [self initWithFrame:frame configuration:nil];

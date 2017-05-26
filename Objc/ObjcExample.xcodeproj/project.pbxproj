@@ -13,7 +13,7 @@
 		583179621ED810DD00D33416 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 583179601ED810DD00D33416 /* Main.storyboard */; };
 		583179641ED810DD00D33416 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 583179631ED810DD00D33416 /* Assets.xcassets */; };
 		583179671ED810DD00D33416 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 583179651ED810DD00D33416 /* LaunchScreen.storyboard */; };
-		583179711ED8114500D33416 /* SCWebViewWrapperView.m in Sources */ = {isa = PBXBuildFile; fileRef = 583179701ED8114500D33416 /* SCWebViewWrapperView.m */; };
+		583179751ED813C700D33416 /* SCWebBrowserView.m in Sources */ = {isa = PBXBuildFile; fileRef = 583179741ED813C700D33416 /* SCWebBrowserView.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -27,8 +27,8 @@
 		583179631ED810DD00D33416 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		583179661ED810DD00D33416 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		583179681ED810DD00D33416 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		5831796F1ED8114500D33416 /* SCWebViewWrapperView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SCWebViewWrapperView.h; sourceTree = "<group>"; };
-		583179701ED8114500D33416 /* SCWebViewWrapperView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SCWebViewWrapperView.m; sourceTree = "<group>"; };
+		583179731ED813C700D33416 /* SCWebBrowserView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SCWebBrowserView.h; sourceTree = "<group>"; };
+		583179741ED813C700D33416 /* SCWebBrowserView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SCWebBrowserView.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -61,7 +61,7 @@
 		583179561ED810DD00D33416 /* ObjcExample */ = {
 			isa = PBXGroup;
 			children = (
-				5831796E1ED8114500D33416 /* SCWebViewWrapperView */,
+				583179721ED813C700D33416 /* SCWebBrowserView */,
 				5831795A1ED810DD00D33416 /* AppDelegate.h */,
 				5831795B1ED810DD00D33416 /* AppDelegate.m */,
 				5831795D1ED810DD00D33416 /* ViewController.h */,
@@ -83,13 +83,13 @@
 			name = "Supporting Files";
 			sourceTree = "<group>";
 		};
-		5831796E1ED8114500D33416 /* SCWebViewWrapperView */ = {
+		583179721ED813C700D33416 /* SCWebBrowserView */ = {
 			isa = PBXGroup;
 			children = (
-				5831796F1ED8114500D33416 /* SCWebViewWrapperView.h */,
-				583179701ED8114500D33416 /* SCWebViewWrapperView.m */,
+				583179731ED813C700D33416 /* SCWebBrowserView.h */,
+				583179741ED813C700D33416 /* SCWebBrowserView.m */,
 			);
-			path = SCWebViewWrapperView;
+			path = SCWebBrowserView;
 			sourceTree = SOURCE_ROOT;
 		};
 /* End PBXGroup section */
@@ -164,7 +164,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				583179711ED8114500D33416 /* SCWebViewWrapperView.m in Sources */,
+				583179751ED813C700D33416 /* SCWebBrowserView.m in Sources */,
 				5831795F1ED810DD00D33416 /* ViewController.m in Sources */,
 				5831795C1ED810DD00D33416 /* AppDelegate.m in Sources */,
 				583179591ED810DD00D33416 /* main.m in Sources */,

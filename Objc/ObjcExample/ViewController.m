@@ -7,23 +7,25 @@
 //
 
 #import "ViewController.h"
+#import "SCWebBrowserView.h"
+
 
 @interface ViewController ()
+
+@property (weak, nonatomic) IBOutlet SCWebBrowserView *webViewWrapperView;
 
 @end
 
 @implementation ViewController
 
+static NSString *const defaultAddress = @"https://www.apple.com";
+
 - (void)viewDidLoad {
     [super viewDidLoad];
-    // Do any additional setup after loading the view, typically from a nib.
+    
+    
 }
 
-
-- (void)didReceiveMemoryWarning {
-    [super didReceiveMemoryWarning];
-    // Dispose of any resources that can be recreated.
-}
 
 
 @end
