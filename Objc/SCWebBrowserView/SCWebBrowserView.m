@@ -48,12 +48,22 @@
 
 @interface SCWebBrowserView ()
 
+@property (strong, nonatomic) WKWebViewConfiguration *configuration;
+
 @end
 
 @implementation SCWebBrowserView
 
+#pragma mark - Lifecycle
 - (void)dealloc {
     
+}
+
+- (instancetype)initWithCoder:(NSCoder *)aDecoder {
+    if (self = [super initWithCoder:aDecoder]) {
+        [self setup];
+    }
+    return self;
 }
 
 - (instancetype)initWithFrame:(CGRect)frame {
@@ -64,27 +74,165 @@
 - (instancetype)initWithFrame:(CGRect)frame configuration:(WKWebViewConfiguration *)configuration {
     if (self = [super initWithFrame:frame]) {
         
-        if (NSClassFromString(@"WKWebView")) {
-            
-            if (configuration != nil) {
-                _wkWebView = [[WKWebView alloc] initWithFrame:frame configuration:configuration];
-            } else {
-                _wkWebView = [[WKWebView alloc] initWithFrame:frame];
-            }
-            
-        } else {
-            _uiWebView = [[UIWebView alloc] initWithFrame:frame];
-        }
+        _configuration = configuration;
         
+        [self setup];
     }
     
     return self;
 }
 
+- (void)setup {
+    
+    // TODO: How to deal with UIWebView?
+    _allowsBackForwardNavigationGestures = YES;
+    
+    if (NSClassFromString(@"WKWebView")) {
+        
+        if (_configuration != nil) {
+            _wkWebView = [[WKWebView alloc] initWithFrame:self.bounds configuration:_configuration];
+        } else {
+            _wkWebView = [[WKWebView alloc] initWithFrame:self.bounds];
+        }
+        
+        _wkWebView.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
+        _wkWebView.UIDelegate = self;
+        _wkWebView.navigationDelegate = self;
+        _wkWebView.allowsBackForwardNavigationGestures = _allowsBackForwardNavigationGestures;
+        
+        [self addSubview:_wkWebView];
+        
+    } else {
+        _uiWebView = [[UIWebView alloc] initWithFrame:self.bounds];
+        _uiWebView.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
+        _uiWebView.delegate = self;
+        
+        [self addSubview:_uiWebView];
+    }
+}
+
+
+#pragma mark - Public methods
+- (void)loadURLString:(NSString *)URLString {
+    [self loadURL:[NSURL URLWithString:URLString]];
+}
+
+- (void)loadURL:(NSURL *)URL {
+    [self loadRequest:[NSURLRequest requestWithURL:URL]];
+}
+
+- (void)loadRequest:(NSURLRequest *)request {
+    
+    if (self.wkWebView) {
+        
+        [self.wkWebView loadRequest:request];
+        
+    } else if (self.uiWebView) {
+        
+        [self.uiWebView loadRequest:request];
+    }
+}
+
+- (void)loadHTMLString:(NSString *)HTMLString {
+    
+    if (self.wkWebView) {
+        
+        [self.wkWebView loadHTMLString:HTMLString baseURL:nil];
+        
+    } else if (self.uiWebView) {
+        
+        [self.uiWebView loadHTMLString:HTMLString baseURL:nil];
+    }
+}
+
+// TODO: KVO support needed ???
+- (NSURL *)URL {
+    if (self.wkWebView) {
+        
+        return self.wkWebView.URL;
+        
+    } else if (self.uiWebView) {
+        
+        return self.uiWebView.request.URL;
+    }
+    
+    return nil;
+}
+
+- (void)reload {
+    if (self.wkWebView) {
+        
+        [self.wkWebView reload];
+        
+    } else if (self.uiWebView) {
+        
+        [self.uiWebView reload];
+    }
+}
+
+- (void)stopLoading {
+    if (self.wkWebView) {
+        
+        [self.wkWebView stopLoading];
+        
+    } else if (self.uiWebView) {
+        
+        [self.uiWebView stopLoading];
+    }
+}
+
+
+// TODO: KVO support needed ???
+- (BOOL)isLoading {
+    if (self.wkWebView) {
+        
+        return self.wkWebView.isLoading;
+        
+    } else if (self.uiWebView) {
+        
+        return  self.uiWebView.isLoading;
+        
+    }
+    
+    return NO;
+}
+
+- (UIScrollView *)scrollView {
+    if (self.wkWebView) {
+        
+        return self.wkWebView.scrollView;
+        
+    } else if (self.uiWebView) {
+        
+        return self.uiWebView.scrollView;
+    }
+    
+    return nil;
+}
+
+- (void)evaluateJavaScript:(NSString *)javaScriptString completionHandler:(void (^ _Nullable)(_Nullable id result, NSError * _Nullable error))completionHandler {
+    
+    if (self.wkWebView) {
+        
+        [self.wkWebView evaluateJavaScript:javaScriptString completionHandler:completionHandler];
+        
+    } else if (self.uiWebView) {
+        
+        NSString *result = [self.uiWebView stringByEvaluatingJavaScriptFromString:javaScriptString];
+        
+        
+        // TODO:
+        NSError *error = result ? nil : [NSError errorWithDomain:NSURLErrorDomain code:NSURLErrorUnknown userInfo:nil];
+        
+        if (completionHandler) {
+            completionHandler(result, error);
+        }
+    }
+    
+}
+
 
 #pragma mark - <UIWebViewDelegate>
-
-
 
 - (BOOL)webView:(UIWebView *)webView shouldStartLoadWithRequest:(NSURLRequest *)request navigationType:(UIWebViewNavigationType)navigationType {
     
@@ -94,15 +242,23 @@
     
     return YES;
 }
+
 - (void)webViewDidStartLoad:(UIWebView *)webView {
-    
+    if ([self.delegate respondsToSelector:@selector(webBrowserViewDidStartLoad:)]) {
+        [self.delegate webBrowserViewDidStartLoad:self];
+    }
 }
+
 - (void)webViewDidFinishLoad:(UIWebView *)webView {
-    
+    if ([self.delegate respondsToSelector:@selector(webBrowserViewDidFinishLoad:)]) {
+        [self.delegate webBrowserViewDidFinishLoad:self];
+    }
 }
 
 - (void)webView:(UIWebView *)webView didFailLoadWithError:(NSError *)error {
-    
+    if ([self.delegate respondsToSelector:@selector(webBrowserView:didFailLoadWithError:)]) {
+        [self.delegate webBrowserView:self didFailLoadWithError:error];
+    }
 }
 
 
@@ -111,30 +267,37 @@
 
 // Called when web content begins to load in a web view.
 - (void)webView:(WKWebView *)webView didStartProvisionalNavigation:(WKNavigation *)navigation {
-    
+    if ([self.delegate respondsToSelector:@selector(webBrowserViewDidStartLoad:)]) {
+        [self.delegate webBrowserViewDidStartLoad:self];
+    }
 }
 
 // Called when the web view begins to receive web content.
 - (void)webView:(WKWebView *)webView didCommitNavigation:(WKNavigation *)navigation {
-    
+    // do nothing...
 }
 
 
 // Called when the navigation is complete.
 - (void)webView:(WKWebView *)webView didFinishNavigation:(WKNavigation *)navigation {
     
-    
-    
     // WKWebView didn't finish loading, when didFinishNavigation is called - Bug in WKWebView?
     // https://stackoverflow.com/questions/30291534/wkwebview-didnt-finish-loading-when-didfinishnavigation-is-called-bug-in-wkw?rq=1
+    
+    if ([self.delegate respondsToSelector:@selector(webBrowserViewDidFinishLoad:)]) {
+        [self.delegate webBrowserViewDidFinishLoad:self];
+    }
 }
 
 // Called when an error occurs during navigation.
 - (void)webView:(WKWebView *)webView didFailNavigation:(WKNavigation *)navigation withError:(NSError *)error {
     
     
-    [self handleError:error];
-    
+    if ([self handleSchemeURLError:error] == NO) {
+        if ([self.delegate respondsToSelector:@selector(webBrowserView:didFailLoadWithError:)]) {
+            [self.delegate webBrowserView:self didFailLoadWithError:error];
+        }
+    }
     
 }
 
@@ -142,7 +305,11 @@
 - (void)webView:(WKWebView *)webView didFailProvisionalNavigation:(WKNavigation *)navigation withError:(NSError *)error {
     
     
-    [self handleError:error];
+    if ([self handleSchemeURLError:error] == NO) {
+        if ([self.delegate respondsToSelector:@selector(webBrowserView:didFailLoadWithError:)]) {
+            [self.delegate webBrowserView:self didFailLoadWithError:error];
+        }
+    }
 }
 
 // Decides whether to allow or cancel a navigation.
@@ -210,19 +377,8 @@
 - (nullable WKWebView *)webView:(WKWebView *)webView createWebViewWithConfiguration:(WKWebViewConfiguration *)configuration forNavigationAction:(WKNavigationAction *)navigationAction windowFeatures:(WKWindowFeatures *)windowFeatures {
     
     // http://stackoverflow.com/a/26683888/7088321
-//    // If the page uses window.open() or target="_blank", open the page in a new view controller.
-//    WKWebViewController *wkWebViewController = [[WKWebViewController alloc] init];
-//    wkWebViewController.URL = navigationAction.request.URL;
-//    wkWebViewController.navigationItem.title = @"New WKWebView";
-//    wkWebViewController.hidesBottomBarWhenPushed = YES;
-//    [self.navigationController pushViewController:wkWebViewController animated:YES];
-//    
-//    return wkWebViewController.webView;
-    
-    // or
-    
      
-     if (navigationAction.targetFrame.isMainFrame == nil) {
+     if (navigationAction.targetFrame.isMainFrame == NO) {
          [webView loadRequest:navigationAction.request];
      }
      
@@ -240,8 +396,6 @@
     // Close a webview by call `window.close();`
     // Using UIWebView there is no way of achieving this without injecting some JavaScript
     // https://stackoverflow.com/questions/31842899/handling-window-close-in-javascript-through-uiwebview-obj-c/36143847#36143847
-    
-    
 }
 
 
@@ -315,16 +469,22 @@
 
 #pragma mark - <WKScriptMessageHandler>
 
+- (void)userContentController:(WKUserContentController *)userContentController didReceiveScriptMessage:(WKScriptMessage *)message {
+    
+}
 
 
 #pragma mark - Private Methods
-- (void)handleError:(NSError *)error {
+- (BOOL)handleSchemeURLError:(NSError *)error {
     
     
-    NSString *failingURL = error.userInfo[NSErrorFailingURLStringKey];
+    NSString *failingURL = error.userInfo[NSURLErrorFailingURLStringErrorKey];
     NSURL *urlToOpen = [NSURL URLWithString:failingURL];
     
-    if (urlToOpen && [[UIApplication sharedApplication] canOpenURL:urlToOpen]) {
+    if (urlToOpen &&
+        ![urlToOpen.scheme isEqualToString:@"http"] &&
+        ![urlToOpen.scheme isEqualToString:@"https"] &&
+        [[UIApplication sharedApplication] canOpenURL:urlToOpen]) {
         
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wdeprecated-declarations"
@@ -337,6 +497,10 @@
          NSLog(@"%@", success ? @"Open URL successfully" : @"Open URL failed");
          }];
          */
+        
+        return YES;
+    } else {
+        return NO;
     }
 }
 

@@ -14,6 +14,8 @@
 		583179641ED810DD00D33416 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 583179631ED810DD00D33416 /* Assets.xcassets */; };
 		583179671ED810DD00D33416 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 583179651ED810DD00D33416 /* LaunchScreen.storyboard */; };
 		583179751ED813C700D33416 /* SCWebBrowserView.m in Sources */ = {isa = PBXBuildFile; fileRef = 583179741ED813C700D33416 /* SCWebBrowserView.m */; };
+		583179781ED91FCC00D33416 /* WebKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 583179771ED91FCC00D33416 /* WebKit.framework */; };
+		5831797A1ED92DA300D33416 /* WebViewTest.html in Resources */ = {isa = PBXBuildFile; fileRef = 583179791ED92DA300D33416 /* WebViewTest.html */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -29,6 +31,8 @@
 		583179681ED810DD00D33416 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		583179731ED813C700D33416 /* SCWebBrowserView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SCWebBrowserView.h; sourceTree = "<group>"; };
 		583179741ED813C700D33416 /* SCWebBrowserView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SCWebBrowserView.m; sourceTree = "<group>"; };
+		583179771ED91FCC00D33416 /* WebKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WebKit.framework; path = System/Library/Frameworks/WebKit.framework; sourceTree = SDKROOT; };
+		583179791ED92DA300D33416 /* WebViewTest.html */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.html; path = WebViewTest.html; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -36,6 +40,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				583179781ED91FCC00D33416 /* WebKit.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -47,6 +52,7 @@
 			children = (
 				583179561ED810DD00D33416 /* ObjcExample */,
 				583179551ED810DD00D33416 /* Products */,
+				583179761ED91FCC00D33416 /* Frameworks */,
 			);
 			sourceTree = "<group>";
 		};
@@ -61,6 +67,7 @@
 		583179561ED810DD00D33416 /* ObjcExample */ = {
 			isa = PBXGroup;
 			children = (
+				583179791ED92DA300D33416 /* WebViewTest.html */,
 				583179721ED813C700D33416 /* SCWebBrowserView */,
 				5831795A1ED810DD00D33416 /* AppDelegate.h */,
 				5831795B1ED810DD00D33416 /* AppDelegate.m */,
@@ -91,6 +98,14 @@
 			);
 			path = SCWebBrowserView;
 			sourceTree = SOURCE_ROOT;
+		};
+		583179761ED91FCC00D33416 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				583179771ED91FCC00D33416 /* WebKit.framework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
 
@@ -151,6 +166,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				5831797A1ED92DA300D33416 /* WebViewTest.html in Resources */,
 				583179671ED810DD00D33416 /* LaunchScreen.storyboard in Resources */,
 				583179641ED810DD00D33416 /* Assets.xcassets in Resources */,
 				583179621ED810DD00D33416 /* Main.storyboard in Resources */,

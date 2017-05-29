@@ -21,27 +21,28 @@
                         <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
-                            <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="GUm-hT-2XF" customClass="SCWebBrowserView">
-                                <rect key="frame" x="0.0" y="64" width="375" height="603"/>
+                            <view contentMode="scaleToFill" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="Utn-oM-Y0T" customClass="SCWebBrowserView">
+                                <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                 <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                             </view>
                         </subviews>
                         <color key="backgroundColor" red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
-                        <constraints>
-                            <constraint firstItem="GUm-hT-2XF" firstAttribute="top" secondItem="y3c-jy-aDJ" secondAttribute="bottom" id="7Xg-fo-FRM"/>
-                            <constraint firstAttribute="trailing" secondItem="GUm-hT-2XF" secondAttribute="trailing" id="E0O-Ee-cXe"/>
-                            <constraint firstItem="GUm-hT-2XF" firstAttribute="leading" secondItem="8bC-Xf-vdC" secondAttribute="leading" id="NZn-n3-Jkv"/>
-                            <constraint firstItem="wfy-db-euE" firstAttribute="top" secondItem="GUm-hT-2XF" secondAttribute="bottom" id="an0-9T-Dr6"/>
-                        </constraints>
                     </view>
-                    <navigationItem key="navigationItem" title="SCWebBrowserView" id="ZoR-t3-8gw"/>
+                    <navigationItem key="navigationItem" title="SCWebBrowserView" id="ZoR-t3-8gw">
+                        <barButtonItem key="rightBarButtonItem" systemItem="refresh" id="eu2-lK-hgN">
+                            <connections>
+                                <action selector="refresh:" destination="BYZ-38-t0r" id="MHP-c9-AOw"/>
+                            </connections>
+                        </barButtonItem>
+                    </navigationItem>
                     <connections>
-                        <outlet property="webViewWrapperView" destination="GUm-hT-2XF" id="EtD-Kg-hru"/>
+                        <outlet property="webBrowserView" destination="Utn-oM-Y0T" id="67T-kN-Rrh"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="dkx-z0-nzr" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="1004" y="-553"/>
+            <point key="canvasLocation" x="973.60000000000002" y="-563.56821589205401"/>
         </scene>
         <!--Navigation Controller-->
         <scene sceneID="USr-Vk-hHt">
