@@ -60,7 +60,7 @@
     // TODO: How to deal with UIWebView?
     _allowsBackForwardNavigationGestures = YES;
     
-    if (!NSClassFromString(@"WKWebView")) {
+    if (NSClassFromString(@"WKWebView")) {
         
         if (_configuration != nil) {
             _wkWebView = [[WKWebView alloc] initWithFrame:self.bounds configuration:_configuration];
