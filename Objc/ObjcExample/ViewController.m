@@ -28,18 +28,17 @@ static NSString *const defaultAddress = @"https://www.apple.com";
     
     NSString *path = [[NSBundle mainBundle] pathForResource:@"WebViewTest" ofType:@"html"];
     NSString *HTMLString = [[NSString alloc] initWithContentsOfFile:path encoding:NSUTF8StringEncoding error:nil];
-    [self.webBrowserView loadHTMLString:HTMLString];
+//    [self.webBrowserView loadHTMLString:HTMLString];
     
-//    [self.webBrowserView loadURLString:defaultAddress];
+    [self.webBrowserView loadURLString:defaultAddress];
+    
+    self.navigationItem.title = self.webBrowserView.title;
     
 }
 
 - (IBAction)refresh:(id)sender {
     
     [self.webBrowserView reload];
-    
-    
-
 }
 
 
@@ -62,6 +61,14 @@ static NSString *const defaultAddress = @"https://www.apple.com";
     NSLog(@"%s", __FUNCTION__);
     
     return YES;
+}
+
+- (void)webBrowserView:(SCWebBrowserView *)webBrowserView didUpdateTitle:(NSString *)title {
+    self.navigationItem.title = title;
+}
+
+- (void)webBrowserView:(SCWebBrowserView *)webBrowserView didUpdateProgress:(double)progress {
+    NSLog(@"%s progress:%g", __FUNCTION__, progress);
 }
 
 

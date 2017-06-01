@@ -22,13 +22,16 @@ NS_ASSUME_NONNULL_BEGIN
 - (void)webBrowserView:(SCWebBrowserView *)webBrowserView didFailLoadWithError:(NSError *)error;
 - (BOOL)webBrowserView:(SCWebBrowserView *)webBrowserView shouldStartLoadWithRequest:(NSURLRequest *)request;
 
+- (void)webBrowserView:(SCWebBrowserView *)webBrowserView didUpdateTitle:(nullable NSString *)title;
+- (void)webBrowserView:(SCWebBrowserView *)webBrowserView didUpdateProgress:(double)progress;
+
 @end
 
 
 /**
  A `UIView` subclass designed to wrapper `UIWebView` and `WKWebView`, using `UIWebView` on the version prior to iOS 8 and `WKWebView` on iOS 8 and later.
  */
-@interface SCWebBrowserView : UIView <UIWebViewDelegate, WKUIDelegate, WKNavigationDelegate, WKScriptMessageHandler>
+@interface SCWebBrowserView : UIView <UIWebViewDelegate, WKUIDelegate, WKNavigationDelegate>
 
 
 
@@ -38,9 +41,13 @@ NS_ASSUME_NONNULL_BEGIN
 
 @property (weak, nonatomic, nullable) IBInspectable id <SCWebBrowserViewDelegate> delegate;
 
+// KVO is not supported for the following 4 properties
+// if you need to observe `title`'s changing and `estimatedProgress`'s changing, implement those provided `SCWebBrowserViewDelegate` methods.
 @property (copy, nonatomic, readonly, nullable) NSURL *URL;
-
+@property (nullable, nonatomic, readonly, copy) NSString *title;
+@property (nonatomic, readonly) double estimatedProgress;
 @property (nonatomic, readonly, getter=isLoading) BOOL loading;
+
 @property (strong, nonatomic, readonly) UIScrollView *scrollView;
 
 /// A Boolean value indicating whether horizontal swipe gestures will trigger back-forward list navigations.
@@ -71,9 +78,9 @@ NS_ASSUME_NONNULL_BEGIN
 
 
 
-// Evaluates a JavaScript string. The completion handler always runs on the main thread.
-// When using `UIWebView`, this method waits synchronously for JavaScript evaluation to complete.
-// When using `WKWebView`, this method valuates a JavaScript string asynchronously.
+/// Evaluates a JavaScript string. The completion handler always runs on the main thread.
+/// @discussion When using `UIWebView`, this method waits synchronously for JavaScript evaluation to complete.
+/// When using `WKWebView`, this method valuates a JavaScript string asynchronously.
 - (void)evaluateJavaScript:(NSString *)javaScriptString completionHandler:(void (^ _Nullable)(_Nullable id result, NSError * _Nullable error))completionHandler;
 
 @end

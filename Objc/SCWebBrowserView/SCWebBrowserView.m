@@ -10,45 +10,12 @@
 
 #define UIApplicationKeyWindow [UIApplication sharedApplication].keyWindow
 
-// Why do we need a seperate class for WKScriptMessage handling? http://www.jianshu.com/p/6ba2507445e4
-// WKWebView causes my view controller to leak https://stackoverflow.com/questions/26383031/wkwebview-causes-my-view-controller-to-leak
-
-@interface SCWKScriptMessageHandler : NSObject <WKScriptMessageHandler>
-
-@property (weak, nonatomic) id <WKScriptMessageHandler> delegate;
-
-- (instancetype)initWithDelegate:(id <WKScriptMessageHandler>)delegate;
-
-@end
-
-@implementation SCWKScriptMessageHandler
-
-- (instancetype)initWithDelegate:(id<WKScriptMessageHandler>)delegate {
-    
-    if (self = [super init]) {
-        _delegate = delegate;
-    }
-    
-    return self;
-}
-
-#pragma mark - <WKScriptMessageHandler>
-- (void)userContentController:(WKUserContentController *)userContentController didReceiveScriptMessage:(WKScriptMessage *)message {
-    
-    if ([self.delegate respondsToSelector:@selector(userContentController:didReceiveScriptMessage:)]) {
-        [self.delegate userContentController:userContentController didReceiveScriptMessage:message];
-    }
-}
-
-@end
-
-
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////
-
 @interface SCWebBrowserView ()
 
 @property (strong, nonatomic) WKWebViewConfiguration *configuration;
+
+@property (nonatomic, readwrite, copy) NSString *title;
+@property (nonatomic, readwrite) double estimatedProgress;
 
 @end
 
@@ -56,7 +23,13 @@
 
 #pragma mark - Lifecycle
 - (void)dealloc {
+    self.uiWebView.delegate = nil;
     
+    self.wkWebView.UIDelegate = nil;
+    self.wkWebView.navigationDelegate = nil;
+    
+    [self.wkWebView removeObserver:self forKeyPath:NSStringFromSelector(@selector(estimatedProgress))];
+    [self.wkWebView removeObserver:self forKeyPath:NSStringFromSelector(@selector(title))];
 }
 
 - (instancetype)initWithCoder:(NSCoder *)aDecoder {
@@ -87,7 +60,7 @@
     // TODO: How to deal with UIWebView?
     _allowsBackForwardNavigationGestures = YES;
     
-    if (NSClassFromString(@"WKWebView")) {
+    if (!NSClassFromString(@"WKWebView")) {
         
         if (_configuration != nil) {
             _wkWebView = [[WKWebView alloc] initWithFrame:self.bounds configuration:_configuration];
@@ -99,6 +72,9 @@
         _wkWebView.UIDelegate = self;
         _wkWebView.navigationDelegate = self;
         _wkWebView.allowsBackForwardNavigationGestures = _allowsBackForwardNavigationGestures;
+        
+        [_wkWebView addObserver:self forKeyPath:NSStringFromSelector(@selector(estimatedProgress)) options:NSKeyValueObservingOptionNew context:nil];
+         [_wkWebView addObserver:self forKeyPath:NSStringFromSelector(@selector(title)) options:NSKeyValueObservingOptionNew context:nil];
         
         [self addSubview:_wkWebView];
         
@@ -145,20 +121,6 @@
     }
 }
 
-// TODO: KVO support needed ???
-- (NSURL *)URL {
-    if (self.wkWebView) {
-        
-        return self.wkWebView.URL;
-        
-    } else if (self.uiWebView) {
-        
-        return self.uiWebView.request.URL;
-    }
-    
-    return nil;
-}
-
 - (void)reload {
     if (self.wkWebView) {
         
@@ -181,6 +143,55 @@
     }
 }
 
+- (void)evaluateJavaScript:(NSString *)javaScriptString completionHandler:(void (^ _Nullable)(_Nullable id result, NSError * _Nullable error))completionHandler {
+    
+    if (self.wkWebView) {
+        
+        [self.wkWebView evaluateJavaScript:javaScriptString completionHandler:completionHandler];
+        
+    } else if (self.uiWebView) {
+        
+        NSString *result = [self.uiWebView stringByEvaluatingJavaScriptFromString:javaScriptString];
+        
+        
+        // TODO: How to create a proper error object for UIWebView?
+        NSError *error = result ? nil : [NSError errorWithDomain:NSURLErrorDomain code:NSURLErrorUnknown userInfo:nil];
+        
+        if (completionHandler) {
+            completionHandler(result, error);
+        }
+    }
+    
+}
+
+
+#pragma mark - Getter
+
+
+- (NSURL *)URL {
+    if (self.wkWebView) {
+        
+        return self.wkWebView.URL;
+        
+    } else if (self.uiWebView) {
+        
+        return self.uiWebView.request.URL;
+    }
+    
+    return nil;
+}
+
+
+- (NSString *)title {
+    if (self.wkWebView) {
+        
+        _title = self.wkWebView.title;
+        
+    }
+    
+    return _title;
+}
+
 
 // TODO: KVO support needed ???
 - (BOOL)isLoading {
@@ -190,11 +201,21 @@
         
     } else if (self.uiWebView) {
         
-        return  self.uiWebView.isLoading;
+        return self.uiWebView.isLoading;
         
     }
     
     return NO;
+}
+
+- (double)estimatedProgress {
+    
+    if (self.wkWebView) {
+        
+        _estimatedProgress = self.wkWebView.estimatedProgress;
+    }
+    
+    return _estimatedProgress;
 }
 
 - (UIScrollView *)scrollView {
@@ -210,54 +231,96 @@
     return nil;
 }
 
-- (void)evaluateJavaScript:(NSString *)javaScriptString completionHandler:(void (^ _Nullable)(_Nullable id result, NSError * _Nullable error))completionHandler {
+#pragma mark - KVO
+- (void)observeValueForKeyPath:(NSString *)keyPath ofObject:(id)object change:(NSDictionary<NSKeyValueChangeKey,id> *)change context:(void *)context {
     
-    if (self.wkWebView) {
+    if (object == self.wkWebView) {
         
-        [self.wkWebView evaluateJavaScript:javaScriptString completionHandler:completionHandler];
+        if([keyPath isEqualToString:NSStringFromSelector(@selector(estimatedProgress))]) {
         
-    } else if (self.uiWebView) {
-        
-        NSString *result = [self.uiWebView stringByEvaluatingJavaScriptFromString:javaScriptString];
-        
-        
-        // TODO:
-        NSError *error = result ? nil : [NSError errorWithDomain:NSURLErrorDomain code:NSURLErrorUnknown userInfo:nil];
-        
-        if (completionHandler) {
-            completionHandler(result, error);
+            if ([self.delegate respondsToSelector:@selector(webBrowserView:didUpdateProgress:)]) {
+                [self.delegate webBrowserView:self didUpdateProgress:self.wkWebView.estimatedProgress];
+            }
         }
+        
+        if ([keyPath isEqualToString:NSStringFromSelector(@selector(title))]) {
+            if ([self.delegate respondsToSelector:@selector(webBrowserView:didUpdateTitle:)]) {
+                [self.delegate webBrowserView:self didUpdateTitle:self.wkWebView.title];
+            }
+        }
+        
+    } else {
+        
+        [super observeValueForKeyPath:keyPath ofObject:object change:change context:context];
     }
-    
 }
+
+#pragma mark - Progress
+// TODO: Progress for UIWebView
 
 
 #pragma mark - <UIWebViewDelegate>
 
 - (BOOL)webView:(UIWebView *)webView shouldStartLoadWithRequest:(NSURLRequest *)request navigationType:(UIWebViewNavigationType)navigationType {
+    if(webView == self.uiWebView) {
     
-    if ([self.delegate respondsToSelector:@selector(webBrowserView:shouldStartLoadWithRequest:)]) {
-        return [self.delegate webBrowserView:self shouldStartLoadWithRequest:request];
+        if(![self externalAppRequiredToOpenURL:request.URL]) {
+            
+            BOOL shouldLoad = YES;
+            if([self.delegate respondsToSelector:@selector(webBrowserView:shouldStartLoadWithRequest:)]) {
+                shouldLoad = [self.delegate webBrowserView:self shouldStartLoadWithRequest:request];
+            }
+            
+            if (shouldLoad) {
+                self.estimatedProgress = 0;
+            }
+            
+            return shouldLoad;
+        }
+        else {
+            [self launchExternalAppWithURL:request.URL];
+            return NO;
+        }
     }
     
     return YES;
 }
 
 - (void)webViewDidStartLoad:(UIWebView *)webView {
-    if ([self.delegate respondsToSelector:@selector(webBrowserViewDidStartLoad:)]) {
-        [self.delegate webBrowserViewDidStartLoad:self];
+    
+    if(webView == self.uiWebView) {
+        if ([self.delegate respondsToSelector:@selector(webBrowserViewDidStartLoad:)]) {
+            [self.delegate webBrowserViewDidStartLoad:self];
+        }
     }
 }
 
 - (void)webViewDidFinishLoad:(UIWebView *)webView {
-    if ([self.delegate respondsToSelector:@selector(webBrowserViewDidFinishLoad:)]) {
-        [self.delegate webBrowserViewDidFinishLoad:self];
+    
+    if(webView == self.uiWebView) {
+        if ([self.delegate respondsToSelector:@selector(webBrowserViewDidFinishLoad:)]) {
+            [self.delegate webBrowserViewDidFinishLoad:self];
+        }
+        
+        self.estimatedProgress = 1.0;
+        
+        // https://stackoverflow.com/questions/2275876/how-to-get-the-title-of-a-html-page-displayed-in-uiwebview
+        self.title = [self.uiWebView stringByEvaluatingJavaScriptFromString:@"document.title"];
+        
+        if ([self.delegate respondsToSelector:@selector(webBrowserView:didUpdateTitle:)]) {
+            [self.delegate webBrowserView:self didUpdateTitle:self.title];
+        }
     }
 }
 
 - (void)webView:(UIWebView *)webView didFailLoadWithError:(NSError *)error {
-    if ([self.delegate respondsToSelector:@selector(webBrowserView:didFailLoadWithError:)]) {
-        [self.delegate webBrowserView:self didFailLoadWithError:error];
+    
+    if(webView == self.uiWebView) {
+        if ([self.delegate respondsToSelector:@selector(webBrowserView:didFailLoadWithError:)]) {
+            [self.delegate webBrowserView:self didFailLoadWithError:error];
+        }
+        
+        self.estimatedProgress = 1.0;
     }
 }
 
@@ -267,14 +330,12 @@
 
 // Called when web content begins to load in a web view.
 - (void)webView:(WKWebView *)webView didStartProvisionalNavigation:(WKNavigation *)navigation {
-    if ([self.delegate respondsToSelector:@selector(webBrowserViewDidStartLoad:)]) {
-        [self.delegate webBrowserViewDidStartLoad:self];
+    
+    if(webView == self.wkWebView) {
+        if ([self.delegate respondsToSelector:@selector(webBrowserViewDidStartLoad:)]) {
+            [self.delegate webBrowserViewDidStartLoad:self];
+        }
     }
-}
-
-// Called when the web view begins to receive web content.
-- (void)webView:(WKWebView *)webView didCommitNavigation:(WKNavigation *)navigation {
-    // do nothing...
 }
 
 
@@ -284,16 +345,17 @@
     // WKWebView didn't finish loading, when didFinishNavigation is called - Bug in WKWebView?
     // https://stackoverflow.com/questions/30291534/wkwebview-didnt-finish-loading-when-didfinishnavigation-is-called-bug-in-wkw?rq=1
     
-    if ([self.delegate respondsToSelector:@selector(webBrowserViewDidFinishLoad:)]) {
-        [self.delegate webBrowserViewDidFinishLoad:self];
+    if(webView == self.wkWebView) {
+        if ([self.delegate respondsToSelector:@selector(webBrowserViewDidFinishLoad:)]) {
+            [self.delegate webBrowserViewDidFinishLoad:self];
+        }
     }
 }
 
 // Called when an error occurs during navigation.
 - (void)webView:(WKWebView *)webView didFailNavigation:(WKNavigation *)navigation withError:(NSError *)error {
     
-    
-    if ([self handleSchemeURLError:error] == NO) {
+    if(webView == self.wkWebView) {
         if ([self.delegate respondsToSelector:@selector(webBrowserView:didFailLoadWithError:)]) {
             [self.delegate webBrowserView:self didFailLoadWithError:error];
         }
@@ -304,8 +366,7 @@
 // Called when an error occurs while the web view is loading content
 - (void)webView:(WKWebView *)webView didFailProvisionalNavigation:(WKNavigation *)navigation withError:(NSError *)error {
     
-    
-    if ([self handleSchemeURLError:error] == NO) {
+    if(webView == self.wkWebView) {
         if ([self.delegate respondsToSelector:@selector(webBrowserView:didFailLoadWithError:)]) {
             [self.delegate webBrowserView:self didFailLoadWithError:error];
         }
@@ -314,53 +375,41 @@
 
 // Decides whether to allow or cancel a navigation.
 - (void)webView:(WKWebView *)webView decidePolicyForNavigationAction:(WKNavigationAction *)navigationAction decisionHandler:(void (^)(WKNavigationActionPolicy))decisionHandler {
+    if(webView != self.wkWebView) decisionHandler(WKNavigationActionPolicyAllow);
     
-    
-    if ([self.delegate respondsToSelector:@selector(webBrowserView:shouldStartLoadWithRequest:)] &&
-        [self.delegate webBrowserView:self shouldStartLoadWithRequest:navigationAction.request] == NO) {
+    NSURL *URL = navigationAction.request.URL;
+    if([self externalAppRequiredToOpenURL:URL] == NO) {
         
-        if (decisionHandler) {
-            decisionHandler(WKNavigationActionPolicyCancel);
+        BOOL shouldLoad = YES;
+        if ([self.delegate respondsToSelector:@selector(webBrowserView:shouldStartLoadWithRequest:)]) {
+            shouldLoad = [self.delegate webBrowserView:self shouldStartLoadWithRequest:navigationAction.request];
+        }
+        
+        // TODO: What action would invoke a new window navigation??
+        // https://github.com/dfmuir/KINWebBrowser
+        // https://stackoverflow.com/questions/25713069/why-is-wkwebview-not-opening-links-with-target-blank
+        if(navigationAction.targetFrame == nil) {
+            
+            if (shouldLoad) [self loadURL:URL];
+            
+            if (decisionHandler) decisionHandler(WKNavigationActionPolicyCancel);
+            
+        } else {
+            
+            if (decisionHandler) decisionHandler(shouldLoad ? WKNavigationActionPolicyAllow : WKNavigationActionPolicyCancel);
         }
         
     } else {
-    
-        if (decisionHandler) {
-            decisionHandler(WKNavigationActionPolicyAllow);
-        }
+        [self launchExternalAppWithURL:URL];
+        if (decisionHandler) decisionHandler(WKNavigationActionPolicyCancel);
     }
     
-}
-
-// Decides whether to allow or cancel a navigation after its response is known.
-- (void)webView:(WKWebView *)webView decidePolicyForNavigationResponse:(WKNavigationResponse *)navigationResponse decisionHandler:(void (^)(WKNavigationResponsePolicy))decisionHandler {
-    
-    
-    if (decisionHandler) {
-        decisionHandler(WKNavigationResponsePolicyAllow);
-    }
-    
-}
-
-// Called when a web view receives a server redirect.
-- (void)webView:(WKWebView *)webView didReceiveServerRedirectForProvisionalNavigation:(null_unspecified WKNavigation *)navigation {
-    
-}
-
-// Called when the web view needs to respond to an authentication challenge.
-- (void)webView:(WKWebView *)webView didReceiveAuthenticationChallenge:(NSURLAuthenticationChallenge *)challenge completionHandler:(void (^)(NSURLSessionAuthChallengeDisposition disposition, NSURLCredential * _Nullable credential))completionHandler {
-    
-    
-    if (completionHandler) {
-        completionHandler(NSURLSessionAuthChallengePerformDefaultHandling, nil);
-    }
     
 }
 
 // MARK: ??? Called when the web view’s web content process is terminated
 // MARK: iOS (9.0 and later)
 - (void)webViewWebContentProcessDidTerminate:(WKWebView *)webView {
-    
     
     // What actions trigger webViewWebContentProcessDidTerminate function  https://stackoverflow.com/questions/39039840/what-actions-trigger-webviewwebcontentprocessdidterminate-function
     // WKWebView goes blank after memory warning  https://stackoverflow.com/questions/27565301/wkwebview-goes-blank-after-memory-warning/41706111#41706111
@@ -375,33 +424,21 @@
 // Creates a new web view.
 // The web view returned must be created with the specified configuration. WebKit loads the request in the returned web view.
 - (nullable WKWebView *)webView:(WKWebView *)webView createWebViewWithConfiguration:(WKWebViewConfiguration *)configuration forNavigationAction:(WKNavigationAction *)navigationAction windowFeatures:(WKWindowFeatures *)windowFeatures {
-    
+        
     // http://stackoverflow.com/a/26683888/7088321
-     
      if (navigationAction.targetFrame.isMainFrame == NO) {
          [webView loadRequest:navigationAction.request];
      }
-     
+    
      return nil;
-     
     
-    
-}
-
-
-// MARK: iOS (9.0 and later)
-// Notifies your app that the DOM window closed successfully
-- (void)webViewDidClose:(WKWebView *)webView {
-    
-    // Close a webview by call `window.close();`
-    // Using UIWebView there is no way of achieving this without injecting some JavaScript
-    // https://stackoverflow.com/questions/31842899/handling-window-close-in-javascript-through-uiwebview-obj-c/36143847#36143847
 }
 
 
 // Alert Dialog Box
 - (void)webView:(WKWebView *)webView runJavaScriptAlertPanelWithMessage:(NSString *)message initiatedByFrame:(WKFrameInfo *)frame completionHandler:(void (^)(void))completionHandler {
     
+    // TODO: 国际化
     UIAlertController *alertController = [UIAlertController alertControllerWithTitle:nil message:message preferredStyle:UIAlertControllerStyleAlert];
     UIAlertAction *okAction = [UIAlertAction actionWithTitle:@"OK" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
         // MARK: Must call completion handler
@@ -467,42 +504,31 @@
 
 
 
-#pragma mark - <WKScriptMessageHandler>
+#pragma mark - External App Support
 
-- (void)userContentController:(WKUserContentController *)userContentController didReceiveScriptMessage:(WKScriptMessage *)message {
-    
+- (BOOL)externalAppRequiredToOpenURL:(NSURL *)URL {
+    NSArray *validSchemes = @[@"http", @"https"];
+    return ![validSchemes containsObject:URL.scheme] && [[UIApplication sharedApplication] canOpenURL:URL];
 }
 
-
-#pragma mark - Private Methods
-- (BOOL)handleSchemeURLError:(NSError *)error {
+- (void)launchExternalAppWithURL:(NSURL *)URL {
     
-    
-    NSString *failingURL = error.userInfo[NSURLErrorFailingURLStringErrorKey];
-    NSURL *urlToOpen = [NSURL URLWithString:failingURL];
-    
-    if (urlToOpen &&
-        ![urlToOpen.scheme isEqualToString:@"http"] &&
-        ![urlToOpen.scheme isEqualToString:@"https"] &&
-        [[UIApplication sharedApplication] canOpenURL:urlToOpen]) {
+    if ([[UIApplication sharedApplication] canOpenURL:URL]) {
         
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wdeprecated-declarations"
-        [[UIApplication sharedApplication] openURL:urlToOpen];
+        [[UIApplication sharedApplication] openURL:URL];
 #pragma clang diagnostic pop
         
         /*
          // MARK: This method is only available on iOS 10 and later
          [[UIApplication sharedApplication] openURL:urlToOpen options:@{} completionHandler:^(BOOL success) {
-         NSLog(@"%@", success ? @"Open URL successfully" : @"Open URL failed");
+             NSLog(@"%@", success ? @"Open URL successfully" : @"Open URL failed");
          }];
          */
-        
-        return YES;
-    } else {
-        return NO;
-    }
-}
 
+    }
+    
+}
 
 @end
