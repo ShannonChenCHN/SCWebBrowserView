@@ -40,8 +40,10 @@
             <li><button onclick="getConfirmation();">Show Confirmation Dialog Box</button></li>
             <li><button onclick="getValue();">Show Prompt Dialog Box</button></li>
             <li><button onclick="closeWindow();">Close Web View</button></li>
+            <li><button onclick="setLocalStorage();">Set Local Storage</button></li>
+            <li><button onclick="readLocalStorage();">Read Local Storage</button></li>
         </ul>
-        <pre id="log"></pre>
+        
         <script>
             function log(data){
                 var current = new Date();
@@ -96,6 +98,17 @@
         
         function closeWindow(){
             window.close();
+        }
+        
+        function setLocalStorage(){
+            var myObject = {'name' : "John", 'age': 24};
+            localStorage.setItem('myObject', JSON.stringify(myObject));
+        }
+        
+        function readLocalStorage(){
+            var retrievedObjectString = localStorage.getItem('myObject');
+            var retrievedObject = JSON.parse(retrievedObjectString);
+            alert ("Hello! My Name is "+retrievedObject.name+", and I am "+retrievedObject.age);
         }
         
         </script>
