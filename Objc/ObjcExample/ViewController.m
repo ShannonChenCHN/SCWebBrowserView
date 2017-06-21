@@ -24,6 +24,7 @@ static NSString *const defaultAddress = @"https://www.apple.com";
     [super viewDidLoad];
     
     self.webBrowserView.delegate = self;
+    self.webBrowserView.allowsBackForwardNavigationGestures = YES;
     
     
     NSString *path = [[NSBundle mainBundle] pathForResource:@"WebViewTest" ofType:@"html"];
