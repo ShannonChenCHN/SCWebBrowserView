@@ -57,26 +57,32 @@
 
 - (void)setup {
     
-    // TODO: How to deal with UIWebView?
-    _allowsBackForwardNavigationGestures = YES;
+    _allowsOpenExternalAppURL = YES;
     
     if (NSClassFromString(@"WKWebView")) {
         
+        WKUserScript *cookieScript = [[WKUserScript alloc] initWithSource:[self cookieJavaScriptString] injectionTime:WKUserScriptInjectionTimeAtDocumentStart forMainFrameOnly:NO];
+        
         if (_configuration != nil) {
+            [_configuration.userContentController addUserScript:cookieScript];
             _wkWebView = [[WKWebView alloc] initWithFrame:self.bounds configuration:_configuration];
         } else {
-            _wkWebView = [[WKWebView alloc] initWithFrame:self.bounds];
+            WKUserContentController *userContentController = [[WKUserContentController alloc] init];
+            [userContentController addUserScript:cookieScript];
+            WKWebViewConfiguration *configuration = [[WKWebViewConfiguration alloc] init];
+            configuration.userContentController = userContentController;
+            _wkWebView = [[WKWebView alloc] initWithFrame:self.bounds configuration:configuration];
         }
         
         _wkWebView.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
         _wkWebView.UIDelegate = self;
         _wkWebView.navigationDelegate = self;
-        _wkWebView.allowsBackForwardNavigationGestures = _allowsBackForwardNavigationGestures;
-        
-        [_wkWebView addObserver:self forKeyPath:NSStringFromSelector(@selector(estimatedProgress)) options:NSKeyValueObservingOptionNew context:nil];
-         [_wkWebView addObserver:self forKeyPath:NSStringFromSelector(@selector(title)) options:NSKeyValueObservingOptionNew context:nil];
         
         [self addSubview:_wkWebView];
+        
+        [_wkWebView addObserver:self forKeyPath:NSStringFromSelector(@selector(estimatedProgress)) options:NSKeyValueObservingOptionNew context:nil];
+        [_wkWebView addObserver:self forKeyPath:NSStringFromSelector(@selector(title)) options:NSKeyValueObservingOptionNew context:nil];
+        
         
     } else {
         _uiWebView = [[UIWebView alloc] initWithFrame:self.bounds];
@@ -84,13 +90,21 @@
         _uiWebView.delegate = self;
         
         [self addSubview:_uiWebView];
+        
+        [_uiWebView.scrollView addObserver:self forKeyPath:NSStringFromSelector(@selector(contentSize)) options:NSKeyValueObservingOptionNew context:nil];
     }
+
 }
 
 
 #pragma mark - Public methods
 - (void)loadURLString:(NSString *)URLString {
-    [self loadURL:[NSURL URLWithString:URLString]];
+    if ([URLString isKindOfClass:[NSString class]] == NO) return;
+    
+    // https://stackoverflow.com/a/7920424/7088321
+    NSString *decodedURLString = [URLString stringByReplacingOccurrencesOfString:@"+" withString:@" "];
+    decodedURLString = [decodedURLString stringByReplacingPercentEscapesUsingEncoding:NSUTF8StringEncoding];
+    [self loadURL:[NSURL URLWithString:decodedURLString]];
 }
 
 - (void)loadURL:(NSURL *)URL {
@@ -101,7 +115,10 @@
     
     if (self.wkWebView) {
         
-        [self.wkWebView loadRequest:request];
+        // Workaround: Can I set the cookies to be used by a WKWebView?
+        // http://stackoverflow.com/a/32845148/7088321
+        NSMutableURLRequest *modifiedRequest = [self cookieSettedRquestWithOriginalRequest:request];
+        [self.wkWebView loadRequest:modifiedRequest];
         
     } else if (self.uiWebView) {
         
@@ -165,7 +182,60 @@
 }
 
 
+- (void)evaluateSetCookieScriptWithCompletionHandler:(void (^)())completionHandler {
+    if (self.wkWebView) {
+        
+        [self evaluateJavaScript:[self cookieJavaScriptString] completionHandler:completionHandler];
+    }
+}
+
+- (NSString *)cookieJavaScriptString {
+    
+    NSMutableArray *array = [NSMutableArray array];
+    for (NSHTTPCookie *cookie in [[NSHTTPCookieStorage sharedHTTPCookieStorage] cookies]) {
+        NSString *value = [NSString stringWithFormat:@"document.cookie = '%@=%@;path=/'", cookie.name, cookie.value];
+        [array addObject:value];
+    }
+    NSString *strCookies = [array componentsJoinedByString:@";"];
+    
+    return strCookies;
+}
+
+- (NSMutableURLRequest *)cookieSettedRquestWithOriginalRequest:(NSURLRequest *)request {
+    
+    // 1.Retrieve cookies from shared storage
+    NSMutableArray *setCookieScriptArray = [NSMutableArray array];
+    for (NSHTTPCookie *aCookie in [NSHTTPCookieStorage sharedHTTPCookieStorage].cookies) {
+        NSString *singleSetCookieScript = [NSString stringWithFormat:@"%@=%@", aCookie.name, aCookie.value];
+        [setCookieScriptArray addObject:singleSetCookieScript];
+    }
+    NSString *headerCookieValue = [setCookieScriptArray componentsJoinedByString:@";"];
+    
+    // 2.Set cookie in request header
+    NSMutableURLRequest *modifiedRequest = [request mutableCopy];
+    [modifiedRequest setValue:headerCookieValue forHTTPHeaderField:@"Cookie"];
+    
+    return modifiedRequest;
+}
+
+#pragma mark - Setter
+- (void)setAllowsBackForwardNavigationGestures:(BOOL)allowsBackForwardNavigationGestures {
+    
+    if (self.wkWebView) {
+        self.wkWebView.allowsBackForwardNavigationGestures = allowsBackForwardNavigationGestures;
+    }
+}
+
 #pragma mark - Getter
+
+- (BOOL)allowsBackForwardNavigationGestures {
+    if (self.wkWebView) {
+        return self.wkWebView.allowsBackForwardNavigationGestures;
+    } else {
+        return NO;
+    }
+}
+
 
 
 - (NSURL *)URL {
@@ -237,21 +307,14 @@
     if (object == self.wkWebView) {
         
         if([keyPath isEqualToString:NSStringFromSelector(@selector(estimatedProgress))]) {
-        
-            if ([self.delegate respondsToSelector:@selector(webBrowserView:didUpdateProgress:)]) {
-                [self.delegate webBrowserView:self didUpdateProgress:self.wkWebView.estimatedProgress];
-            }
+            
+            [self didUpdateProgress:self.wkWebView.estimatedProgress];
         }
         
         if ([keyPath isEqualToString:NSStringFromSelector(@selector(title))]) {
-            if ([self.delegate respondsToSelector:@selector(webBrowserView:didUpdateTitle:)]) {
-                [self.delegate webBrowserView:self didUpdateTitle:self.wkWebView.title];
-            }
+            [self didUpdateTitle:self.wkWebView.title];
         }
         
-    } else {
-        
-        [super observeValueForKeyPath:keyPath ofObject:object change:change context:context];
     }
 }
 
@@ -263,24 +326,25 @@
 
 - (BOOL)webView:(UIWebView *)webView shouldStartLoadWithRequest:(NSURLRequest *)request navigationType:(UIWebViewNavigationType)navigationType {
     if(webView == self.uiWebView) {
-    
-        if(![self externalAppRequiredToOpenURL:request.URL]) {
+        
+        BOOL shouldLoad = [self shouldStartLoadWithRequest:request];
+        
+        if (shouldLoad) {
             
-            BOOL shouldLoad = YES;
-            if([self.delegate respondsToSelector:@selector(webBrowserView:shouldStartLoadWithRequest:)]) {
-                shouldLoad = [self.delegate webBrowserView:self shouldStartLoadWithRequest:request];
-            }
-            
-            if (shouldLoad) {
+            if(![self externalAppRequiredToOpenURL:request.URL]) {
+                
                 self.estimatedProgress = 0;
+                return YES;
+                
+            } else {
+                
+                [self launchExternalAppWithURL:request.URL];
+                return NO;
             }
-            
-            return shouldLoad;
-        }
-        else {
-            [self launchExternalAppWithURL:request.URL];
+        } else {
             return NO;
         }
+        
     }
     
     return YES;
@@ -289,38 +353,39 @@
 - (void)webViewDidStartLoad:(UIWebView *)webView {
     
     if(webView == self.uiWebView) {
-        if ([self.delegate respondsToSelector:@selector(webBrowserViewDidStartLoad:)]) {
-            [self.delegate webBrowserViewDidStartLoad:self];
-        }
+        [self didStartLoad];
     }
+
 }
 
 - (void)webViewDidFinishLoad:(UIWebView *)webView {
     
     if(webView == self.uiWebView) {
-        if ([self.delegate respondsToSelector:@selector(webBrowserViewDidFinishLoad:)]) {
-            [self.delegate webBrowserViewDidFinishLoad:self];
-        }
+        [self didFinishLoad];
         
         self.estimatedProgress = 1.0;
         
         // https://stackoverflow.com/questions/2275876/how-to-get-the-title-of-a-html-page-displayed-in-uiwebview
         self.title = [self.uiWebView stringByEvaluatingJavaScriptFromString:@"document.title"];
         
-        if ([self.delegate respondsToSelector:@selector(webBrowserView:didUpdateTitle:)]) {
-            [self.delegate webBrowserView:self didUpdateTitle:self.title];
-        }
+        [self didUpdateTitle:self.title];
     }
 }
 
 - (void)webView:(UIWebView *)webView didFailLoadWithError:(NSError *)error {
     
+    self.estimatedProgress = 1.0;
+    self.title = nil;
+    
+    // How do I fix NSURLErrorDomain error -999 in iPhone 3.0 OS
+    // https://stackoverflow.com/a/1053411/7088321
+    if (error.code == NSURLErrorCancelled) {
+        return;
+    }
+    
     if(webView == self.uiWebView) {
-        if ([self.delegate respondsToSelector:@selector(webBrowserView:didFailLoadWithError:)]) {
-            [self.delegate webBrowserView:self didFailLoadWithError:error];
-        }
+        [self didFailLoadWithError:error];
         
-        self.estimatedProgress = 1.0;
     }
 }
 
@@ -328,13 +393,47 @@
 #pragma mark - <WKNavigationDelegate>
 
 
+// Decides whether to allow or cancel a navigation.
+- (void)webView:(WKWebView *)webView decidePolicyForNavigationAction:(WKNavigationAction *)navigationAction decisionHandler:(void (^)(WKNavigationActionPolicy))decisionHandler {
+    if(webView != self.wkWebView && decisionHandler) decisionHandler(WKNavigationActionPolicyAllow);
+    
+    
+    BOOL shouldLoad = [self shouldStartLoadWithRequest:navigationAction.request];
+    
+    
+    if (shouldLoad) {
+        NSURL *URL = navigationAction.request.URL;
+        if([self externalAppRequiredToOpenURL:URL] == NO) {
+            
+            // TODO: What action would invoke a new window navigation??
+            // https://github.com/dfmuir/KINWebBrowser
+            // https://stackoverflow.com/questions/25713069/why-is-wkwebview-not-opening-links-with-target-blank
+            if(navigationAction.targetFrame == nil) {
+                
+                [self loadURL:URL];
+                
+                if (decisionHandler) decisionHandler(WKNavigationActionPolicyCancel);
+                
+            } else {
+                
+                if (decisionHandler) decisionHandler(WKNavigationActionPolicyAllow);
+            }
+            
+        } else {
+            [self launchExternalAppWithURL:URL];
+            if (decisionHandler) decisionHandler(WKNavigationActionPolicyCancel);
+        }
+    } else {
+        if (decisionHandler) decisionHandler(WKNavigationActionPolicyCancel);
+    }
+}
+
+
 // Called when web content begins to load in a web view.
 - (void)webView:(WKWebView *)webView didStartProvisionalNavigation:(WKNavigation *)navigation {
     
     if(webView == self.wkWebView) {
-        if ([self.delegate respondsToSelector:@selector(webBrowserViewDidStartLoad:)]) {
-            [self.delegate webBrowserViewDidStartLoad:self];
-        }
+        [self didStartLoad];
     }
 }
 
@@ -346,19 +445,19 @@
     // https://stackoverflow.com/questions/30291534/wkwebview-didnt-finish-loading-when-didfinishnavigation-is-called-bug-in-wkw?rq=1
     
     if(webView == self.wkWebView) {
-        if ([self.delegate respondsToSelector:@selector(webBrowserViewDidFinishLoad:)]) {
-            [self.delegate webBrowserViewDidFinishLoad:self];
-        }
+        [self didFinishLoad];
     }
 }
 
 // Called when an error occurs during navigation.
 - (void)webView:(WKWebView *)webView didFailNavigation:(WKNavigation *)navigation withError:(NSError *)error {
     
+    if (error.code == NSURLErrorCancelled) {
+        return;
+    }
+    
     if(webView == self.wkWebView) {
-        if ([self.delegate respondsToSelector:@selector(webBrowserView:didFailLoadWithError:)]) {
-            [self.delegate webBrowserView:self didFailLoadWithError:error];
-        }
+        [self didFailLoadWithError:error];
     }
     
 }
@@ -366,46 +465,15 @@
 // Called when an error occurs while the web view is loading content
 - (void)webView:(WKWebView *)webView didFailProvisionalNavigation:(WKNavigation *)navigation withError:(NSError *)error {
     
+    if (error.code == NSURLErrorCancelled) {
+        return;
+    }
+    
     if(webView == self.wkWebView) {
-        if ([self.delegate respondsToSelector:@selector(webBrowserView:didFailLoadWithError:)]) {
-            [self.delegate webBrowserView:self didFailLoadWithError:error];
-        }
+        [self didFailLoadWithError:error];
     }
 }
 
-// Decides whether to allow or cancel a navigation.
-- (void)webView:(WKWebView *)webView decidePolicyForNavigationAction:(WKNavigationAction *)navigationAction decisionHandler:(void (^)(WKNavigationActionPolicy))decisionHandler {
-    if(webView != self.wkWebView) decisionHandler(WKNavigationActionPolicyAllow);
-    
-    NSURL *URL = navigationAction.request.URL;
-    if([self externalAppRequiredToOpenURL:URL] == NO) {
-        
-        BOOL shouldLoad = YES;
-        if ([self.delegate respondsToSelector:@selector(webBrowserView:shouldStartLoadWithRequest:)]) {
-            shouldLoad = [self.delegate webBrowserView:self shouldStartLoadWithRequest:navigationAction.request];
-        }
-        
-        // TODO: What action would invoke a new window navigation??
-        // https://github.com/dfmuir/KINWebBrowser
-        // https://stackoverflow.com/questions/25713069/why-is-wkwebview-not-opening-links-with-target-blank
-        if(navigationAction.targetFrame == nil) {
-            
-            if (shouldLoad) [self loadURL:URL];
-            
-            if (decisionHandler) decisionHandler(WKNavigationActionPolicyCancel);
-            
-        } else {
-            
-            if (decisionHandler) decisionHandler(shouldLoad ? WKNavigationActionPolicyAllow : WKNavigationActionPolicyCancel);
-        }
-        
-    } else {
-        [self launchExternalAppWithURL:URL];
-        if (decisionHandler) decisionHandler(WKNavigationActionPolicyCancel);
-    }
-    
-    
-}
 
 // MARK: ??? Called when the web view’s web content process is terminated
 // MARK: iOS (9.0 and later)
@@ -424,13 +492,13 @@
 // Creates a new web view.
 // The web view returned must be created with the specified configuration. WebKit loads the request in the returned web view.
 - (nullable WKWebView *)webView:(WKWebView *)webView createWebViewWithConfiguration:(WKWebViewConfiguration *)configuration forNavigationAction:(WKNavigationAction *)navigationAction windowFeatures:(WKWindowFeatures *)windowFeatures {
-        
-    // http://stackoverflow.com/a/26683888/7088321
-     if (navigationAction.targetFrame.isMainFrame == NO) {
-         [webView loadRequest:navigationAction.request];
-     }
     
-     return nil;
+    // http://stackoverflow.com/a/26683888/7088321
+    if (navigationAction.targetFrame.isMainFrame == NO) {
+        [webView loadRequest:navigationAction.request];
+    }
+    
+    return nil;
     
 }
 
@@ -503,12 +571,62 @@
 }
 
 
+#pragma mark - Methods for subclasses
+// 拦截器的功能可以由子类通过继承实现，也可以由其它对象实现,两种做法可以共存
+// https://github.com/casatwy/RTNetworking/blob/master/CTNetworking/CTNetworking/Components/BaseAPIManager/CTAPIBaseManager.m#L258
+
+- (BOOL)shouldStartLoadWithRequest:(NSURLRequest *)request {
+    BOOL shouldLoad = YES;
+    
+    if (self != self.delegate && [self.delegate respondsToSelector:@selector(webBrowserView:shouldStartLoadWithRequest:)]) {
+        shouldLoad = [self.delegate webBrowserView:self shouldStartLoadWithRequest:request];
+    }
+    
+    return shouldLoad;
+}
+
+- (void)didStartLoad {
+    
+    if (self != self.delegate && [self.delegate respondsToSelector:@selector(webBrowserViewDidStartLoad:)]) {
+        [self.delegate webBrowserViewDidStartLoad:self];
+    }
+}
+
+- (void)didFinishLoad {
+    if (self != self.delegate && [self.delegate respondsToSelector:@selector(webBrowserViewDidFinishLoad:)]) {
+        [self.delegate webBrowserViewDidFinishLoad:self];
+    }
+}
+
+- (void)didFailLoadWithError:(NSError *)error {
+    if (self != self.delegate && [self.delegate respondsToSelector:@selector(webBrowserView:didFailLoadWithError:)]) {
+        [self.delegate webBrowserView:self didFailLoadWithError:error];
+    }
+}
+
+- (void)didUpdateTitle:(NSString *)title {
+    if (self != self.delegate && [self.delegate respondsToSelector:@selector(webBrowserView:didUpdateTitle:)]) {
+        [self.delegate webBrowserView:self didUpdateTitle:self.title];
+    }
+}
+
+- (void)didUpdateProgress:(double)progress {
+    if (self != self.delegate && [self.delegate respondsToSelector:@selector(webBrowserView:didUpdateProgress:)]) {
+        [self.delegate webBrowserView:self didUpdateProgress:self.wkWebView.estimatedProgress];
+    }
+}
 
 #pragma mark - External App Support
 
 - (BOOL)externalAppRequiredToOpenURL:(NSURL *)URL {
+    if (self.allowsOpenExternalAppURL == NO) return NO;
+    if ([[UIApplication sharedApplication] canOpenURL:URL] == NO) return NO;
+    
     NSArray *validSchemes = @[@"http", @"https"];
-    return ![validSchemes containsObject:URL.scheme] && [[UIApplication sharedApplication] canOpenURL:URL];
+    
+    BOOL shouldOpen = ![validSchemes containsObject:URL.scheme];
+    
+    return shouldOpen;
 }
 
 - (void)launchExternalAppWithURL:(NSURL *)URL {
@@ -520,15 +638,16 @@
         [[UIApplication sharedApplication] openURL:URL];
 #pragma clang diagnostic pop
         
+        // TODO: This method is only available on iOS 10 and later
         /*
-         // MARK: This method is only available on iOS 10 and later
          [[UIApplication sharedApplication] openURL:urlToOpen options:@{} completionHandler:^(BOOL success) {
-             NSLog(@"%@", success ? @"Open URL successfully" : @"Open URL failed");
+         NSLog(@"%@", success ? @"Open URL successfully" : @"Open URL failed");
          }];
          */
-
+        
     }
     
 }
+
 
 @end

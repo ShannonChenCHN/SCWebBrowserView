@@ -42,7 +42,7 @@ NS_ASSUME_NONNULL_BEGIN
 @property (weak, nonatomic, nullable) IBInspectable id <SCWebBrowserViewDelegate> delegate;
 
 // KVO is not supported for the following 4 properties
-// if you need to observe `title`'s changing and `estimatedProgress`'s changing, implement those provided `SCWebBrowserViewDelegate` methods.
+// if you need to observe `title`'s changing and `estimatedProgress`'s changing, implement those provided `YHWebBrowserViewDelegate` methods.
 @property (copy, nonatomic, readonly, nullable) NSURL *URL;
 @property (nullable, nonatomic, readonly, copy) NSString *title;
 @property (nonatomic, readonly) double estimatedProgress;
@@ -51,8 +51,13 @@ NS_ASSUME_NONNULL_BEGIN
 @property (strong, nonatomic, readonly) UIScrollView *scrollView;
 
 /// A Boolean value indicating whether horizontal swipe gestures will trigger back-forward list navigations.
-/// @discussion The default value is YES.
+/// @discussion The default value is `NO`.
+/// @note This feature is only supported on `WKWebView`.
 @property (nonatomic) BOOL allowsBackForwardNavigationGestures;
+
+/// A Boolean value indicating a external app URL link should be allowed to open.
+/// @discussion The default value is YES.
+@property (assign, nonatomic) BOOL allowsOpenExternalAppURL;
 
 - (instancetype)initWithFrame:(CGRect)frame configuration:(nullable WKWebViewConfiguration *)configuration;
 
@@ -82,6 +87,21 @@ NS_ASSUME_NONNULL_BEGIN
 /// @discussion When using `UIWebView`, this method waits synchronously for JavaScript evaluation to complete.
 /// When using `WKWebView`, this method valuates a JavaScript string asynchronously.
 - (void)evaluateJavaScript:(NSString *)javaScriptString completionHandler:(void (^ _Nullable)(_Nullable id result, NSError * _Nullable error))completionHandler;
+
+/// Retrieve cookies from shared `NSHTTPCookieStorage` and evaluates a JavaScript string to set cookie for `WKWebView`.
+- (void)evaluateSetCookieScriptWithCompletionHandler:(void (^)())completionHandler;
+
+
+
+/********** Methods for subclasses ********/
+
+- (void)didStartLoad NS_REQUIRES_SUPER;
+- (void)didFinishLoad NS_REQUIRES_SUPER;
+- (void)didFailLoadWithError:(NSError *)error NS_REQUIRES_SUPER;
+- (BOOL)shouldStartLoadWithRequest:(NSURLRequest *)request NS_REQUIRES_SUPER;
+
+- (void)didUpdateTitle:(nullable NSString *)title NS_REQUIRES_SUPER;
+- (void)didUpdateProgress:(double)progress NS_REQUIRES_SUPER;
 
 @end
 

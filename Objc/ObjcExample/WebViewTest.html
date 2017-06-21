@@ -34,6 +34,7 @@
             
             <li><button onclick="openURL();">open URL</button></li>
             <li><button onclick="openCustomSchemeURL();">open Custom Scheme URL</button></li>
+            <li><button onclick="makePhoneCall();">Make A Phone Call</button></li>
             <li><button onclick="openURLInNewWebView();">open URL In New Web View</button></li>
             <li><button onclick="postMessage();">Post Message</button></li>
             <li><button onclick="Warn();">Show Alert Dialog Box</button></li>
@@ -61,6 +62,10 @@
         }
 
         function openCustomSchemeURL(){
+            window.location = "webviewdemo://test";
+        }
+        
+        function makePhoneCall(){
             window.location = "tel://123456";
         }
         

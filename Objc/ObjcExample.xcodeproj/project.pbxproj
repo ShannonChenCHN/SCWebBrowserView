@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		583179201EFA7C2900A79932 /* SCCustomWebBrowserView.m in Sources */ = {isa = PBXBuildFile; fileRef = 5831791F1EFA7C2900A79932 /* SCCustomWebBrowserView.m */; };
 		583179591ED810DD00D33416 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 583179581ED810DD00D33416 /* main.m */; };
 		5831795C1ED810DD00D33416 /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 5831795B1ED810DD00D33416 /* AppDelegate.m */; };
 		5831795F1ED810DD00D33416 /* ViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 5831795E1ED810DD00D33416 /* ViewController.m */; };
@@ -19,6 +20,8 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		5831791E1EFA7C2900A79932 /* SCCustomWebBrowserView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SCCustomWebBrowserView.h; sourceTree = "<group>"; };
+		5831791F1EFA7C2900A79932 /* SCCustomWebBrowserView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SCCustomWebBrowserView.m; sourceTree = "<group>"; };
 		583179541ED810DD00D33416 /* ObjcExample.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ObjcExample.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		583179581ED810DD00D33416 /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
 		5831795A1ED810DD00D33416 /* AppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
@@ -73,6 +76,8 @@
 				5831795B1ED810DD00D33416 /* AppDelegate.m */,
 				5831795D1ED810DD00D33416 /* ViewController.h */,
 				5831795E1ED810DD00D33416 /* ViewController.m */,
+				5831791E1EFA7C2900A79932 /* SCCustomWebBrowserView.h */,
+				5831791F1EFA7C2900A79932 /* SCCustomWebBrowserView.m */,
 				583179601ED810DD00D33416 /* Main.storyboard */,
 				583179631ED810DD00D33416 /* Assets.xcassets */,
 				583179651ED810DD00D33416 /* LaunchScreen.storyboard */,
@@ -181,6 +186,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				583179751ED813C700D33416 /* SCWebBrowserView.m in Sources */,
+				583179201EFA7C2900A79932 /* SCCustomWebBrowserView.m in Sources */,
 				5831795F1ED810DD00D33416 /* ViewController.m in Sources */,
 				5831795C1ED810DD00D33416 /* AppDelegate.m in Sources */,
 				583179591ED810DD00D33416 /* main.m in Sources */,

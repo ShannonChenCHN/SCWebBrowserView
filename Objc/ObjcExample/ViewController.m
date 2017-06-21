@@ -7,7 +7,7 @@
 //
 
 #import "ViewController.h"
-#import "SCWebBrowserView.h"
+#import "SCCustomWebBrowserView.h"
 
 
 @interface ViewController () <SCWebBrowserViewDelegate>
@@ -28,9 +28,9 @@ static NSString *const defaultAddress = @"https://www.apple.com";
     
     NSString *path = [[NSBundle mainBundle] pathForResource:@"WebViewTest" ofType:@"html"];
     NSString *HTMLString = [[NSString alloc] initWithContentsOfFile:path encoding:NSUTF8StringEncoding error:nil];
-//    [self.webBrowserView loadHTMLString:HTMLString];
+    [self.webBrowserView loadHTMLString:HTMLString];
     
-    [self.webBrowserView loadURLString:defaultAddress];
+//    [self.webBrowserView loadURLString:defaultAddress];
     
     self.navigationItem.title = self.webBrowserView.title;
     
