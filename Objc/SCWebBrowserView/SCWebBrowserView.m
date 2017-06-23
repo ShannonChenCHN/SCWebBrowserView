@@ -193,7 +193,7 @@
     
     NSMutableArray *array = [NSMutableArray array];
     for (NSHTTPCookie *cookie in [[NSHTTPCookieStorage sharedHTTPCookieStorage] cookies]) {
-        NSString *value = [NSString stringWithFormat:@"document.cookie = '%@=%@;path=/'", cookie.name, cookie.value];
+        NSString *value = [NSString stringWithFormat:@"document.cookie = '%@=%@; domain=%@; path=/'", cookie.name, cookie.domain, cookie.value];
         [array addObject:value];
     }
     NSString *strCookies = [array componentsJoinedByString:@";"];
