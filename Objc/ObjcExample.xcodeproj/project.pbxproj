@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		5827363F1F0122B60015719F /* WebViewTest.html in Resources */ = {isa = PBXBuildFile; fileRef = 5827363E1F0122B60015719F /* WebViewTest.html */; };
 		583179201EFA7C2900A79932 /* SCCustomWebBrowserView.m in Sources */ = {isa = PBXBuildFile; fileRef = 5831791F1EFA7C2900A79932 /* SCCustomWebBrowserView.m */; };
 		583179591ED810DD00D33416 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 583179581ED810DD00D33416 /* main.m */; };
 		5831795C1ED810DD00D33416 /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 5831795B1ED810DD00D33416 /* AppDelegate.m */; };
@@ -16,10 +17,10 @@
 		583179671ED810DD00D33416 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 583179651ED810DD00D33416 /* LaunchScreen.storyboard */; };
 		583179751ED813C700D33416 /* SCWebBrowserView.m in Sources */ = {isa = PBXBuildFile; fileRef = 583179741ED813C700D33416 /* SCWebBrowserView.m */; };
 		583179781ED91FCC00D33416 /* WebKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 583179771ED91FCC00D33416 /* WebKit.framework */; };
-		5831797A1ED92DA300D33416 /* WebViewTest.html in Resources */ = {isa = PBXBuildFile; fileRef = 583179791ED92DA300D33416 /* WebViewTest.html */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		5827363E1F0122B60015719F /* WebViewTest.html */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.html; path = WebViewTest.html; sourceTree = "<group>"; };
 		5831791E1EFA7C2900A79932 /* SCCustomWebBrowserView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SCCustomWebBrowserView.h; sourceTree = "<group>"; };
 		5831791F1EFA7C2900A79932 /* SCCustomWebBrowserView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SCCustomWebBrowserView.m; sourceTree = "<group>"; };
 		583179541ED810DD00D33416 /* ObjcExample.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ObjcExample.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -35,7 +36,6 @@
 		583179731ED813C700D33416 /* SCWebBrowserView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SCWebBrowserView.h; sourceTree = "<group>"; };
 		583179741ED813C700D33416 /* SCWebBrowserView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SCWebBrowserView.m; sourceTree = "<group>"; };
 		583179771ED91FCC00D33416 /* WebKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WebKit.framework; path = System/Library/Frameworks/WebKit.framework; sourceTree = SDKROOT; };
-		583179791ED92DA300D33416 /* WebViewTest.html */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.html; path = WebViewTest.html; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -50,6 +50,15 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		5827363D1F0122B60015719F /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				5827363E1F0122B60015719F /* WebViewTest.html */,
+			);
+			name = Resources;
+			path = ../../Resources;
+			sourceTree = "<group>";
+		};
 		5831794B1ED810DD00D33416 = {
 			isa = PBXGroup;
 			children = (
@@ -70,7 +79,7 @@
 		583179561ED810DD00D33416 /* ObjcExample */ = {
 			isa = PBXGroup;
 			children = (
-				583179791ED92DA300D33416 /* WebViewTest.html */,
+				5827363D1F0122B60015719F /* Resources */,
 				583179721ED813C700D33416 /* SCWebBrowserView */,
 				5831795A1ED810DD00D33416 /* AppDelegate.h */,
 				5831795B1ED810DD00D33416 /* AppDelegate.m */,
@@ -171,7 +180,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				5831797A1ED92DA300D33416 /* WebViewTest.html in Resources */,
+				5827363F1F0122B60015719F /* WebViewTest.html in Resources */,
 				583179671ED810DD00D33416 /* LaunchScreen.storyboard in Resources */,
 				583179641ED810DD00D33416 /* Assets.xcassets in Resources */,
 				583179621ED810DD00D33416 /* Main.storyboard in Resources */,

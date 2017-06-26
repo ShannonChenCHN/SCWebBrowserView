@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		582736421F0122BE0015719F /* WebViewTest.html in Resources */ = {isa = PBXBuildFile; fileRef = 582736411F0122BE0015719F /* WebViewTest.html */; };
 		58303F981EFA8A2900E5FBCD /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 58303F971EFA8A2900E5FBCD /* AppDelegate.swift */; };
 		58303F9A1EFA8A2900E5FBCD /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 58303F991EFA8A2900E5FBCD /* ViewController.swift */; };
 		58303F9D1EFA8A2900E5FBCD /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 58303F9B1EFA8A2900E5FBCD /* Main.storyboard */; };
@@ -18,6 +19,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		582736411F0122BE0015719F /* WebViewTest.html */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.html; path = WebViewTest.html; sourceTree = "<group>"; };
 		58303F941EFA8A2900E5FBCD /* SwiftExample.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = SwiftExample.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		58303F971EFA8A2900E5FBCD /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		58303F991EFA8A2900E5FBCD /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
@@ -42,6 +44,15 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		582736401F0122BE0015719F /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				582736411F0122BE0015719F /* WebViewTest.html */,
+			);
+			name = Resources;
+			path = ../../Resources;
+			sourceTree = "<group>";
+		};
 		58303F8B1EFA8A2900E5FBCD = {
 			isa = PBXGroup;
 			children = (
@@ -62,6 +73,7 @@
 		58303F961EFA8A2900E5FBCD /* SwiftExample */ = {
 			isa = PBXGroup;
 			children = (
+				582736401F0122BE0015719F /* Resources */,
 				58303FA91EFA8A8F00E5FBCD /* SCWebBrowserView */,
 				58303F971EFA8A2900E5FBCD /* AppDelegate.swift */,
 				58303F991EFA8A2900E5FBCD /* ViewController.swift */,
@@ -150,6 +162,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				582736421F0122BE0015719F /* WebViewTest.html in Resources */,
 				58303FA21EFA8A2900E5FBCD /* LaunchScreen.storyboard in Resources */,
 				58303F9F1EFA8A2900E5FBCD /* Assets.xcassets in Resources */,
 				58303F9D1EFA8A2900E5FBCD /* Main.storyboard in Resources */,

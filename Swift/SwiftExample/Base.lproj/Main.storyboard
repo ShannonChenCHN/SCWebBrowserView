@@ -21,7 +21,7 @@
                         <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
-                            <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="KT0-Rc-T9C" customClass="SCCustomWebBrowserView">
+                            <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="KT0-Rc-T9C" customClass="SCCustomWebBrowserView" customModule="SwiftExample" customModuleProvider="target">
                                 <rect key="frame" x="0.0" y="64" width="375" height="603"/>
                                 <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                             </view>
@@ -35,10 +35,13 @@
                         </constraints>
                     </view>
                     <navigationItem key="navigationItem" title="SCWebBrowserView" id="14o-ki-l28"/>
+                    <connections>
+                        <outlet property="webBrowserView" destination="KT0-Rc-T9C" id="WCb-Sl-cRc"/>
+                    </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="dkx-z0-nzr" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="1137" y="752"/>
+            <point key="canvasLocation" x="818" y="648"/>
         </scene>
         <!--Navigation Controller-->
         <scene sceneID="Wq9-se-Kic">
