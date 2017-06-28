@@ -10,9 +10,42 @@
 
 #define UIApplicationKeyWindow [UIApplication sharedApplication].keyWindow
 
+/**
+ A private category on NSHTTPCookie
+ */
+@interface NSHTTPCookie (WebView)
+
+/// Convert a NSHTTPCookie object to a NSString object
+- (NSString *)sc_javaScriptString;
+
+@end
+
+@implementation NSHTTPCookie (WebView)
+
+/// Convert a NSHTTPCookie object to a NSString object
+/// https://stackoverflow.com/a/32845148/7088321
+- (NSString *)sc_javaScriptString {
+    
+    NSString *string = [NSString stringWithFormat:@"%@=%@; domain=%@; path=%@",
+                        self.name,
+                        self.value,
+                        self.domain,
+                        self.path ?: @"/"];
+    
+    if (self.secure) {
+        string = [string stringByAppendingString:@"; secure=true"];
+    }
+    
+    return string;
+}
+
+@end
+
+////////////////////////////////////////////////////////////////////////
+
 @interface SCWebBrowserView ()
 
-@property (strong, nonatomic) WKWebViewConfiguration *configuration;
+@property (assign, nonatomic) SCWebBrowserViewType webViewType;
 
 @property (nonatomic, readwrite, copy) NSString *title;
 @property (nonatomic, readwrite) double estimatedProgress;
@@ -32,48 +65,51 @@
     [self.wkWebView removeObserver:self forKeyPath:NSStringFromSelector(@selector(title))];
 }
 
+// https://stackoverflow.com/a/27146880/7088321
+// https://stackoverflow.com/a/24565513/7088321
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wobjc-designated-initializers"
 - (instancetype)initWithCoder:(NSCoder *)aDecoder {
     if (self = [super initWithCoder:aDecoder]) {
-        [self setup];
+        _webViewType = SCWebBrowserViewTypeDefault;
+        
+        [self commonInit];
     }
     return self;
 }
+#pragma clang diagnostic pop
 
 - (instancetype)initWithFrame:(CGRect)frame {
-    return [self initWithFrame:frame configuration:nil];
+    return [self initWithFrame:frame webViewType:SCWebBrowserViewTypeDefault];
 }
 
 
-- (instancetype)initWithFrame:(CGRect)frame configuration:(WKWebViewConfiguration *)configuration {
+- (instancetype)initWithFrame:(CGRect)frame webViewType:(SCWebBrowserViewType)type {
     if (self = [super initWithFrame:frame]) {
+        _webViewType = type;
         
-        _configuration = configuration;
-        
-        [self setup];
+        [self commonInit];
     }
-    
     return self;
 }
 
-- (void)setup {
+
+
+- (void)commonInit {
     
     _allowsOpenExternalAppURL = YES;
     
-    if (NSClassFromString(@"WKWebView")) {
+    if (NSClassFromString(@"WKWebView") &&
+        _webViewType == SCWebBrowserViewTypeWKWebView) {
         
         WKUserScript *cookieScript = [[WKUserScript alloc] initWithSource:[self cookieJavaScriptString] injectionTime:WKUserScriptInjectionTimeAtDocumentStart forMainFrameOnly:NO];
         
-        if (_configuration != nil) {
-            [_configuration.userContentController addUserScript:cookieScript];
-            _wkWebView = [[WKWebView alloc] initWithFrame:self.bounds configuration:_configuration];
-        } else {
-            WKUserContentController *userContentController = [[WKUserContentController alloc] init];
-            [userContentController addUserScript:cookieScript];
-            WKWebViewConfiguration *configuration = [[WKWebViewConfiguration alloc] init];
-            configuration.userContentController = userContentController;
-            _wkWebView = [[WKWebView alloc] initWithFrame:self.bounds configuration:configuration];
-        }
+        WKUserContentController *userContentController = [[WKUserContentController alloc] init];
+        [userContentController addUserScript:cookieScript];
+        WKWebViewConfiguration *configuration = [[WKWebViewConfiguration alloc] init];
+        configuration.userContentController = userContentController;
         
+        _wkWebView = [[WKWebView alloc] initWithFrame:self.bounds configuration:configuration];
         _wkWebView.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
         _wkWebView.UIDelegate = self;
         _wkWebView.navigationDelegate = self;
@@ -93,7 +129,6 @@
         
         [_uiWebView.scrollView addObserver:self forKeyPath:NSStringFromSelector(@selector(contentSize)) options:NSKeyValueObservingOptionNew context:nil];
     }
-
 }
 
 
@@ -191,14 +226,31 @@
 
 - (NSString *)cookieJavaScriptString {
     
-    NSMutableArray *array = [NSMutableArray array];
-    for (NSHTTPCookie *cookie in [[NSHTTPCookieStorage sharedHTTPCookieStorage] cookies]) {
-        NSString *value = [NSString stringWithFormat:@"document.cookie = '%@=%@; domain=%@; path=/'", cookie.name, cookie.domain, cookie.value];
-        [array addObject:value];
-    }
-    NSString *strCookies = [array componentsJoinedByString:@";"];
+    NSMutableString *cookieScript = [NSMutableString string];
     
-    return strCookies;
+    // Get all cookie names
+    [cookieScript appendString:@"\
+     var cookieNames = document.cookie.split('; ').map(\
+         function(cookie) {\
+             return cookie.split('=')[0];\
+         }\
+     );\n"];
+    
+    for (NSHTTPCookie *cookie in [[NSHTTPCookieStorage sharedHTTPCookieStorage] cookies]) {
+        // Skip cookies that will break our script
+        if ([cookie.value rangeOfString:@"'"].location != NSNotFound) {
+            continue;
+        }
+        
+        // Create a line that appends this cookie to the web view's document's cookies
+        [cookieScript appendFormat:@"\
+         if (cookieNames.indexOf('%@') == -1) {\
+             document.cookie = '%@';\
+         };\n",
+         cookie.name, cookie.sc_javaScriptString];
+    }
+    
+    return cookieScript;
 }
 
 - (NSMutableURLRequest *)cookieSettedRquestWithOriginalRequest:(NSURLRequest *)request {

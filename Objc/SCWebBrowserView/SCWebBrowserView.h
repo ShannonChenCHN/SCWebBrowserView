@@ -13,6 +13,13 @@
 NS_ASSUME_NONNULL_BEGIN
 
 
+typedef NS_ENUM(NSUInteger, SCWebBrowserViewType) {
+    SCWebBrowserViewTypeDefault = 0,
+    SCWebBrowserViewTypeWKWebView = SCWebBrowserViewTypeDefault,
+    SCWebBrowserViewTypeUIWebView,
+};
+
+
 @protocol SCWebBrowserViewDelegate <NSObject>
 
 @optional
@@ -59,7 +66,10 @@ NS_ASSUME_NONNULL_BEGIN
 /// @discussion The default value is YES.
 @property (assign, nonatomic) BOOL allowsOpenExternalAppURL;
 
-- (instancetype)initWithFrame:(CGRect)frame configuration:(nullable WKWebViewConfiguration *)configuration;
+
+/// Initializes and returns a web browser view object having the given frame and   web view.
+/// @note You must specify the web view's type of a web browser view when you create it and you cannot thereafter modify the type. If you initialize the web browser view with the UIView method `initWithFrame:`, the `SCWebBrowserViewTypeDefault` type is used as a default.
+- (instancetype)initWithFrame:(CGRect)frame webViewType:(SCWebBrowserViewType)type NS_DESIGNATED_INITIALIZER;
 
 
 /// Loads a `NSURLURLRequest` to web view.
