@@ -19,6 +19,7 @@ typedef NS_ENUM(NSUInteger, SCWebBrowserViewType) {
     SCWebBrowserViewTypeUIWebView,
 };
 
+typedef BOOL (^SCWebBrowserViewCookieSynchronizeFilter)(NSHTTPCookie *cookie);
 
 @protocol SCWebBrowserViewDelegate <NSObject>
 
@@ -69,6 +70,9 @@ typedef NS_ENUM(NSUInteger, SCWebBrowserViewType) {
 /// @discussion The default value is YES.
 @property (assign, nonatomic) BOOL allowsOpenExternalAppURL;
     
+
+/// A filter to ask whether a given cookie should be ignored when set cookie to WKWebView.
+@property (copy, nonatomic) SCWebBrowserViewCookieSynchronizeFilter cookieFilter;
 
 /// Initializes and returns a web browser view object having the given frame and configuration.
 /// @note You must specify the web view's type of a web browser view when you create it and you cannot thereafter modify the type. If you initialize the web browser view with the UIView method `initWithFrame:`, the `SCWebBrowserViewTypeDefault` type is used as a default.

@@ -264,6 +264,11 @@
             continue;
         }
         
+        // Skip unnecessary cookies
+        if (self.cookieFilter(cookie) == NO) {
+            continue;
+        }
+        
         // Create a line that appends this cookie to the web view's document's cookies
         [cookieScript appendFormat:@"\
          if (cookieNames.indexOf('%@') == -1) {\
@@ -280,6 +285,11 @@
     // 1.Retrieve cookies from shared storage
     NSMutableArray *setCookieScriptArray = [NSMutableArray array];
     for (NSHTTPCookie *aCookie in [NSHTTPCookieStorage sharedHTTPCookieStorage].cookies) {
+        
+        if (self.cookieFilter(aCookie) == NO) {
+            continue;
+        }
+        
         NSString *singleSetCookieScript = [NSString stringWithFormat:@"%@=%@", aCookie.name, aCookie.value];
         [setCookieScriptArray addObject:singleSetCookieScript];
     }
