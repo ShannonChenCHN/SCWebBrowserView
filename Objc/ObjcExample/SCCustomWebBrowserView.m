@@ -16,12 +16,14 @@
     
     if([request.URL.scheme isEqualToString:@"webviewdemo"]) {
         
-        [self evaluateJavaScript:@"alert('自定义 scheme');" completionHandler:NULL];
+        if ([request.URL.host isEqualToString:@"test"]) {
+            [self evaluateJavaScript:@"alert('自定义 scheme');" completionHandler:NULL];
+            return NO;
+        }
         
-        return NO;
     }
     
-    return YES;
+    return [super shouldStartLoadWithRequest:request];
 
 }
 

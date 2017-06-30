@@ -28,7 +28,7 @@
                     overflow: scroll;
                 }
                 </style>
-                </head>
+    </head>
     <body>
         <ul class="ulrs">
             
@@ -42,6 +42,8 @@
             <li><button onclick="closeWindow();">Close Web View</button></li>
             <li><button onclick="setLocalStorage();">Set Local Storage</button></li>
             <li><button onclick="readLocalStorage();">Read Local Storage</button></li>
+            <li><button onclick="openAutoPlayVideoPage();">Open Auto-Play Video Page</button></li>
+            <li><button onclick="openW3school();">Open W3school</button></li>
         </ul>
         
         <script>
@@ -110,6 +112,15 @@
             var retrievedObject = JSON.parse(retrievedObjectString);
             alert ("Hello! My Name is "+retrievedObject.name+", and I am "+retrievedObject.age);
         }
+        
+        function openAutoPlayVideoPage(){
+            window.location = "webviewdemo://playVideo";
+        }
+        
+        function openW3school(){
+            window.location = "http://www.w3school.com.cn/index.html";
+        }
+
         
         </script>
     </body>

@@ -12,7 +12,7 @@
 
 @interface ViewController () <SCWebBrowserViewDelegate>
 
-@property (weak, nonatomic) IBOutlet SCWebBrowserView *webBrowserView;
+@property (weak, nonatomic) SCWebBrowserView *webBrowserView;
 
 @end
 
@@ -23,18 +23,32 @@ static NSString *const defaultAddress = @"https://www.apple.com";
 - (void)viewDidLoad {
     [super viewDidLoad];
     
-    self.webBrowserView.delegate = self;
-    self.webBrowserView.allowsBackForwardNavigationGestures = YES;
     
+    SCWebBrowserViewConfiguration *configuration = [[SCWebBrowserViewConfiguration alloc] init];
+    configuration.mediaPlaybackRequiresUserAction = NO;
+    configuration.allowsInlineMediaPlayback = YES;
+    configuration.scalesPageToFit = YES;
+    configuration.webViewType = SCWebBrowserViewTypeUIWebView;
     
-    NSString *path = [[NSBundle mainBundle] pathForResource:@"WebViewTest" ofType:@"html"];
-    NSString *HTMLString = [[NSString alloc] initWithContentsOfFile:path encoding:NSUTF8StringEncoding error:nil];
-    [self.webBrowserView loadHTMLString:HTMLString];
+    SCWebBrowserView *webBrowserView = [[SCWebBrowserView alloc] initWithFrame:self.view.bounds configuration:configuration];
+    webBrowserView.autoresizingMask = UIViewAutoresizingFlexibleHeight | UIViewAutoresizingFlexibleWidth;
+    webBrowserView.delegate = self;
+    webBrowserView.allowsBackForwardNavigationGestures = YES;
+    self.webBrowserView = webBrowserView;
+    [self.view addSubview:webBrowserView];
+    
+
+    [self.webBrowserView loadHTMLString:[self HTMLStringWithFileName:@"WebViewTest.html"]];
     
 //    [self.webBrowserView loadURLString:defaultAddress];
     
     self.navigationItem.title = self.webBrowserView.title;
     
+}
+    
+- (IBAction)back:(id)sender {
+    
+//    [self.webBrowserView reload];
 }
 
 - (IBAction)refresh:(id)sender {
@@ -61,6 +75,15 @@ static NSString *const defaultAddress = @"https://www.apple.com";
     
     NSLog(@"%s", __FUNCTION__);
     
+    if([request.URL.scheme isEqualToString:@"webviewdemo"]) {
+        
+        if ([request.URL.host isEqualToString:@"playVideo"]) {
+            [self.webBrowserView loadHTMLString:[self HTMLStringWithFileName:@"VideoPlaybackTest.html"]];
+        }
+        
+        return NO;
+    }
+    
     return YES;
 }
 
@@ -72,5 +95,16 @@ static NSString *const defaultAddress = @"https://www.apple.com";
     NSLog(@"%s progress:%g", __FUNCTION__, progress);
 }
 
+    
+#pragma mark - Helper
+- (NSString *)HTMLStringWithFileName:(NSString *)file {
+    
+    NSString *typeString = [file containsString:@"html"] ? @"" : @"html";
+    
+    NSString *path = [[NSBundle mainBundle] pathForResource:file ofType:typeString];
+    NSString *HTMLString = [[NSString alloc] initWithContentsOfFile:path encoding:NSUTF8StringEncoding error:nil];
+    
+    return HTMLString;
+}
 
 @end

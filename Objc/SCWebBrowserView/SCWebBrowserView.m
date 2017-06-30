@@ -44,8 +44,8 @@
 ////////////////////////////////////////////////////////////////////////
 
 @interface SCWebBrowserView ()
-
-@property (assign, nonatomic) SCWebBrowserViewType webViewType;
+    
+@property (nonatomic, readwrite, copy) SCWebBrowserViewConfiguration *configuration;
 
 @property (nonatomic, readwrite, copy) NSString *title;
 @property (nonatomic, readwrite) double estimatedProgress;
@@ -71,7 +71,8 @@
 #pragma clang diagnostic ignored "-Wobjc-designated-initializers"
 - (instancetype)initWithCoder:(NSCoder *)aDecoder {
     if (self = [super initWithCoder:aDecoder]) {
-        _webViewType = SCWebBrowserViewTypeDefault;
+        
+        _configuration = [[SCWebBrowserViewConfiguration alloc] init];
         
         [self commonInit];
     }
@@ -80,13 +81,16 @@
 #pragma clang diagnostic pop
 
 - (instancetype)initWithFrame:(CGRect)frame {
-    return [self initWithFrame:frame webViewType:SCWebBrowserViewTypeDefault];
+    
+    SCWebBrowserViewConfiguration *configuration = [[SCWebBrowserViewConfiguration alloc] init];
+    
+    return [self initWithFrame:frame configuration:configuration];
 }
 
 
-- (instancetype)initWithFrame:(CGRect)frame webViewType:(SCWebBrowserViewType)type {
+- (instancetype)initWithFrame:(CGRect)frame configuration:(nonnull SCWebBrowserViewConfiguration *)configuration {
     if (self = [super initWithFrame:frame]) {
-        _webViewType = type;
+        _configuration = configuration.copy;
         
         [self commonInit];
     }
@@ -100,14 +104,28 @@
     _allowsOpenExternalAppURL = YES;
     
     if (NSClassFromString(@"WKWebView") &&
-        _webViewType == SCWebBrowserViewTypeWKWebView) {
-        
-        WKUserScript *cookieScript = [[WKUserScript alloc] initWithSource:[self cookieJavaScriptString] injectionTime:WKUserScriptInjectionTimeAtDocumentStart forMainFrameOnly:NO];
+        _configuration.webViewType == SCWebBrowserViewTypeWKWebView) {
         
         WKUserContentController *userContentController = [[WKUserContentController alloc] init];
+        WKUserScript *cookieScript = [[WKUserScript alloc] initWithSource:[self cookieJavaScriptString] injectionTime:WKUserScriptInjectionTimeAtDocumentStart forMainFrameOnly:NO];
         [userContentController addUserScript:cookieScript];
+        
+        if (_configuration.scalesPageToFit) {
+            NSString *scalesPageToFitScriptString = @"\
+            var meta = document.createElement('meta');\
+            meta.setAttribute('name', 'viewport');\
+            meta.setAttribute('content', 'width=device-width'); \
+            document.getElementsByTagName('head')[0].appendChild(meta);";
+            WKUserScript *scalesPageToFitScript = [[WKUserScript alloc] initWithSource:scalesPageToFitScriptString injectionTime:WKUserScriptInjectionTimeAtDocumentEnd forMainFrameOnly:YES];
+            [userContentController addUserScript:scalesPageToFitScript];
+        }
+        
+        
         WKWebViewConfiguration *configuration = [[WKWebViewConfiguration alloc] init];
         configuration.userContentController = userContentController;
+        configuration.allowsInlineMediaPlayback = _configuration.allowsInlineMediaPlayback;
+        // TODO: iOS 10+ use `mediaTypesRequiringUserActionForPlayback` instead
+        configuration.mediaPlaybackRequiresUserAction = _configuration.mediaPlaybackRequiresUserAction;
         
         _wkWebView = [[WKWebView alloc] initWithFrame:self.bounds configuration:configuration];
         _wkWebView.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
@@ -124,10 +142,14 @@
         _uiWebView = [[UIWebView alloc] initWithFrame:self.bounds];
         _uiWebView.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
         _uiWebView.delegate = self;
+        _uiWebView.mediaPlaybackRequiresUserAction = _configuration.mediaPlaybackRequiresUserAction;
+        _uiWebView.allowsInlineMediaPlayback = _configuration.allowsInlineMediaPlayback;
+        _uiWebView.scalesPageToFit = _configuration.scalesPageToFit;
         
         [self addSubview:_uiWebView];
         
         [_uiWebView.scrollView addObserver:self forKeyPath:NSStringFromSelector(@selector(contentSize)) options:NSKeyValueObservingOptionNew context:nil];
+        
     }
 }
 
@@ -277,6 +299,7 @@
         self.wkWebView.allowsBackForwardNavigationGestures = allowsBackForwardNavigationGestures;
     }
 }
+    
 
 #pragma mark - Getter
 
@@ -288,7 +311,9 @@
     }
 }
 
-
+- (SCWebBrowserViewConfiguration *)configuration {
+    return _configuration.copy;
+}
 
 - (NSURL *)URL {
     if (self.wkWebView) {
@@ -630,7 +655,7 @@
 - (BOOL)shouldStartLoadWithRequest:(NSURLRequest *)request {
     BOOL shouldLoad = YES;
     
-    if (self != self.delegate && [self.delegate respondsToSelector:@selector(webBrowserView:shouldStartLoadWithRequest:)]) {
+    if ((id)self != self.delegate && [self.delegate respondsToSelector:@selector(webBrowserView:shouldStartLoadWithRequest:)]) {
         shouldLoad = [self.delegate webBrowserView:self shouldStartLoadWithRequest:request];
     }
     
@@ -639,31 +664,31 @@
 
 - (void)didStartLoad {
     
-    if (self != self.delegate && [self.delegate respondsToSelector:@selector(webBrowserViewDidStartLoad:)]) {
+    if ((id)self != self.delegate && [self.delegate respondsToSelector:@selector(webBrowserViewDidStartLoad:)]) {
         [self.delegate webBrowserViewDidStartLoad:self];
     }
 }
 
 - (void)didFinishLoad {
-    if (self != self.delegate && [self.delegate respondsToSelector:@selector(webBrowserViewDidFinishLoad:)]) {
+    if ((id)self != self.delegate && [self.delegate respondsToSelector:@selector(webBrowserViewDidFinishLoad:)]) {
         [self.delegate webBrowserViewDidFinishLoad:self];
     }
 }
 
 - (void)didFailLoadWithError:(NSError *)error {
-    if (self != self.delegate && [self.delegate respondsToSelector:@selector(webBrowserView:didFailLoadWithError:)]) {
+    if ((id)self != self.delegate && [self.delegate respondsToSelector:@selector(webBrowserView:didFailLoadWithError:)]) {
         [self.delegate webBrowserView:self didFailLoadWithError:error];
     }
 }
 
 - (void)didUpdateTitle:(NSString *)title {
-    if (self != self.delegate && [self.delegate respondsToSelector:@selector(webBrowserView:didUpdateTitle:)]) {
+    if ((id)self != self.delegate && [self.delegate respondsToSelector:@selector(webBrowserView:didUpdateTitle:)]) {
         [self.delegate webBrowserView:self didUpdateTitle:self.title];
     }
 }
 
 - (void)didUpdateProgress:(double)progress {
-    if (self != self.delegate && [self.delegate respondsToSelector:@selector(webBrowserView:didUpdateProgress:)]) {
+    if ((id)self != self.delegate && [self.delegate respondsToSelector:@selector(webBrowserView:didUpdateProgress:)]) {
         [self.delegate webBrowserView:self didUpdateProgress:self.wkWebView.estimatedProgress];
     }
 }
@@ -701,5 +726,35 @@
     
 }
 
+
+@end
+
+////////////////////////////////////////////////////////////////////////////////////
+
+@implementation SCWebBrowserViewConfiguration
+
+- (instancetype)init {
+    self = [super init];
+    if (self) {
+        
+        _webViewType = SCWebBrowserViewTypeDefault;
+        
+        _mediaPlaybackRequiresUserAction = YES;
+        _allowsInlineMediaPlayback = NO;
+        _scalesPageToFit = NO;
+    }
+    return self;
+}
+    
+- (id)copyWithZone:(NSZone *)zone {
+    
+    SCWebBrowserViewConfiguration *configuration = [[self.class allocWithZone:zone] init];
+    configuration->_webViewType = _webViewType;
+    configuration->_mediaPlaybackRequiresUserAction = _mediaPlaybackRequiresUserAction;
+    configuration->_allowsInlineMediaPlayback = _allowsInlineMediaPlayback;
+    configuration->_scalesPageToFit = _scalesPageToFit;
+    
+    return configuration;
+}
 
 @end

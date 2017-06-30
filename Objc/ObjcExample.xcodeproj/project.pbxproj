@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		58130FB61F0636D20056E086 /* VideoPlaybackTest.html in Resources */ = {isa = PBXBuildFile; fileRef = 58130FB51F0636D20056E086 /* VideoPlaybackTest.html */; };
 		5827363F1F0122B60015719F /* WebViewTest.html in Resources */ = {isa = PBXBuildFile; fileRef = 5827363E1F0122B60015719F /* WebViewTest.html */; };
 		583179201EFA7C2900A79932 /* SCCustomWebBrowserView.m in Sources */ = {isa = PBXBuildFile; fileRef = 5831791F1EFA7C2900A79932 /* SCCustomWebBrowserView.m */; };
 		583179591ED810DD00D33416 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 583179581ED810DD00D33416 /* main.m */; };
@@ -20,6 +21,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		58130FB51F0636D20056E086 /* VideoPlaybackTest.html */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.html; path = VideoPlaybackTest.html; sourceTree = "<group>"; };
 		5827363E1F0122B60015719F /* WebViewTest.html */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.html; path = WebViewTest.html; sourceTree = "<group>"; };
 		5831791E1EFA7C2900A79932 /* SCCustomWebBrowserView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SCCustomWebBrowserView.h; sourceTree = "<group>"; };
 		5831791F1EFA7C2900A79932 /* SCCustomWebBrowserView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SCCustomWebBrowserView.m; sourceTree = "<group>"; };
@@ -54,6 +56,7 @@
 			isa = PBXGroup;
 			children = (
 				5827363E1F0122B60015719F /* WebViewTest.html */,
+				58130FB51F0636D20056E086 /* VideoPlaybackTest.html */,
 			);
 			name = Resources;
 			path = ../../Resources;
@@ -182,6 +185,7 @@
 			files = (
 				5827363F1F0122B60015719F /* WebViewTest.html in Resources */,
 				583179671ED810DD00D33416 /* LaunchScreen.storyboard in Resources */,
+				58130FB61F0636D20056E086 /* VideoPlaybackTest.html in Resources */,
 				583179641ED810DD00D33416 /* Assets.xcassets in Resources */,
 				583179621ED810DD00D33416 /* Main.storyboard in Resources */,
 			);
