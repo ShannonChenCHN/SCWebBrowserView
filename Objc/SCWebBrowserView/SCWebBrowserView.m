@@ -180,6 +180,8 @@
     } else if (self.uiWebView) {
         
         [self.uiWebView loadRequest:request];
+    } else {
+        
     }
 }
 
@@ -192,6 +194,8 @@
     } else if (self.uiWebView) {
         
         [self.uiWebView loadHTMLString:HTMLString baseURL:nil];
+    } else {
+        
     }
 }
 
@@ -203,6 +207,8 @@
     } else if (self.uiWebView) {
         
         [self.uiWebView reload];
+    } else {
+        
     }
 }
 
@@ -214,6 +220,8 @@
     } else if (self.uiWebView) {
         
         [self.uiWebView stopLoading];
+    } else {
+        
     }
 }
 
@@ -234,6 +242,10 @@
         if (completionHandler) {
             completionHandler(result, error);
         }
+    } else {
+        if (completionHandler) {
+            completionHandler(nil, nil);
+        }
     }
     
 }
@@ -243,6 +255,10 @@
     if (self.wkWebView) {
         
         [self evaluateJavaScript:[self cookieJavaScriptString] completionHandler:completionHandler];
+    } else {
+        if (completionHandler) {
+            completionHandler(nil, nil);
+        }
     }
 }
 
@@ -307,6 +323,8 @@
     
     if (self.wkWebView) {
         self.wkWebView.allowsBackForwardNavigationGestures = allowsBackForwardNavigationGestures;
+    } else {
+        
     }
 }
     
@@ -401,6 +419,8 @@
         if ([keyPath isEqualToString:NSStringFromSelector(@selector(title))]) {
             [self didUpdateTitle:self.wkWebView.title];
         }
+        
+    } else {
         
     }
 }
