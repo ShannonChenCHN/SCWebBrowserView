@@ -48,8 +48,8 @@ webBrowserView.allowsBackForwardNavigationGestures = YES;
 ```
 
 ## TODO
-- [x] Swift edition
-- [x] CocoaPods
+- [ ] Swift edition
+- [ ] CocoaPods
 
 ## License
 SCWebBrowserView is available under the MIT license. See the [LICENSE](./LICENSE) file for more info.
