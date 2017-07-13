@@ -36,7 +36,7 @@ webBrowserView.allowsBackForwardNavigationGestures = YES;
 [webBrowserView loadURLString:@"https://www.apple.com"];
 ```
 
-#### 4. SCWebBrowserViewDelegate
+#### 4. Implement `SCWebBrowserViewDelegate` methods if needed.
 ```
 - (void)webBrowserViewDidStartLoad:(SCWebBrowserView *)webBrowserView;
 - (void)webBrowserViewDidFinishLoad:(SCWebBrowserView *)webBrowserView;
