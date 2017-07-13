@@ -38,9 +38,9 @@ static NSString *const defaultAddress = @"https://www.apple.com";
     [self.view addSubview:webBrowserView];
     
 
-    [self.webBrowserView loadHTMLString:[self HTMLStringWithFileName:@"WebViewTest.html"]];
+//    [self.webBrowserView loadHTMLString:[self HTMLStringWithFileName:@"WebViewTest.html"]];
     
-//    [self.webBrowserView loadURLString:defaultAddress];
+    [self.webBrowserView loadURLString:defaultAddress];
     
     self.navigationItem.title = self.webBrowserView.title;
     
