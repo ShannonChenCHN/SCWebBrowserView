@@ -299,9 +299,22 @@
 - (NSMutableURLRequest *)cookieSettedRquestWithOriginalRequest:(NSURLRequest *)request {
     
     // 1.Retrieve cookies from shared storage
+    NSString *URLHost = request.URL.host;
+    
     NSMutableArray *setCookieScriptArray = [NSMutableArray array];
     for (NSHTTPCookie *aCookie in [NSHTTPCookieStorage sharedHTTPCookieStorage].cookies) {
         
+        // Don't even bother with values containing a `'`
+        if ([aCookie.name rangeOfString:@"'"].location != NSNotFound) {
+            continue;
+        }
+        
+        // Is the cookie for current domain?
+        if (![URLHost containsString:aCookie.domain]) {
+            continue;
+        }
+        
+        // Skip unnecessary cookies
         if (self.cookieFilter(aCookie) == NO) {
             continue;
         }
