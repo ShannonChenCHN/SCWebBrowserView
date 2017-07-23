@@ -16,7 +16,7 @@ A `UIView` subclass designed to wrapper `UIWebView` and `WKWebView`, using `UIWe
 
 #### 1. Create your configuration object if you need some custom configuration.
 
-```
+``` Objective-C
 SCWebBrowserViewConfiguration *configuration = [[SCWebBrowserViewConfiguration alloc] init];
 configuration.mediaPlaybackRequiresUserAction = NO;
 configuration.allowsInlineMediaPlayback = YES;
@@ -26,7 +26,7 @@ configuration.webViewType = SCWebBrowserViewTypeUIWebView;
 
 #### 2. Create your web browser view with your custom configuration, or create your web browser view with default configuration by using initializer `-initWithFrame:`.
 
-```
+``` Objective-C
 SCWebBrowserView *webBrowserView = [[SCWebBrowserView alloc] initWithFrame:self.view.bounds configuration:configuration];
 webBrowserView.autoresizingMask = UIViewAutoresizingFlexibleHeight | UIViewAutoresizingFlexibleWidth;
 webBrowserView.delegate = self;
@@ -35,12 +35,14 @@ webBrowserView.allowsBackForwardNavigationGestures = YES;
 ```
 
 #### 3. Load a URL address. 
-```
+
+``` Objective-C
 [webBrowserView loadURLString:@"https://www.apple.com"];
 ```
 
 #### 4. Implement `SCWebBrowserViewDelegate` methods if needed.
-```
+
+``` Objective-C
 - (void)webBrowserViewDidStartLoad:(SCWebBrowserView *)webBrowserView;
 - (void)webBrowserViewDidFinishLoad:(SCWebBrowserView *)webBrowserView;
 - (void)webBrowserView:(SCWebBrowserView *)webBrowserView didFailLoadWithError:(NSError *)error;
@@ -49,6 +51,19 @@ webBrowserView.allowsBackForwardNavigationGestures = YES;
 - (void)webBrowserView:(SCWebBrowserView *)webBrowserView didUpdateTitle:(nullable NSString *)title;
 - (void)webBrowserView:(SCWebBrowserView *)webBrowserView didUpdateProgress:(double)progress;
 ```
+
+#### 5. If you need to handle some common business logic for your web view, we really recommend you subclass `SCWebBrowserView`, and override the needed methods( [Example Code](https://github.com/ShannonChenCHN/SCWebBrowserView/blob/master/Objc/ObjcExample/SCCustomWebBrowserView.m) )：
+
+``` Objective-C
+- (void)didStartLoad NS_REQUIRES_SUPER;
+- (void)didFinishLoad NS_REQUIRES_SUPER;
+- (void)didFailLoadWithError:(NSError *)error NS_REQUIRES_SUPER;
+- (BOOL)shouldStartLoadWithRequest:(NSURLRequest *)request NS_REQUIRES_SUPER;
+
+- (void)didUpdateTitle:(nullable NSString *)title NS_REQUIRES_SUPER;
+- (void)didUpdateProgress:(double)progress NS_REQUIRES_SUPER;
+```
+
 
 ## TODO
 - [ ] Swift edition
@@ -73,7 +88,7 @@ webBrowserView.allowsBackForwardNavigationGestures = YES;
 
 #### 1. 如果你需要一些自定义配置的话，你可以先创建一个 `SCWebBrowserViewConfiguration` 对象。
 
-```
+``` Objective-C
 SCWebBrowserViewConfiguration *configuration = [[SCWebBrowserViewConfiguration alloc] init];
 configuration.mediaPlaybackRequiresUserAction = NO;
 configuration.allowsInlineMediaPlayback = YES;
@@ -82,8 +97,8 @@ configuration.webViewType = SCWebBrowserViewTypeUIWebView;
 ```
 
 #### 2. 根据上一步创建的 configuration，创建一个 `SCWebBrowserView` 对象，或者直接使用 `-initWithFrame:` 创建一个 `SCWebBrowserView` 对象（此时，使用的是默认的 configuration）。
-
-```
+ 
+``` Objective-C
 SCWebBrowserView *webBrowserView = [[SCWebBrowserView alloc] initWithFrame:self.view.bounds configuration:configuration];
 webBrowserView.autoresizingMask = UIViewAutoresizingFlexibleHeight | UIViewAutoresizingFlexibleWidth;
 webBrowserView.delegate = self;
@@ -92,12 +107,14 @@ webBrowserView.allowsBackForwardNavigationGestures = YES;
 ```
 
 #### 3. 加载一个 URL 地址。 
-```
+
+``` Objective-C
 [webBrowserView loadURLString:@"https://www.apple.com"];
 ```
 
 #### 4. 如果你需要监听一些事件，可以实现 `SCWebBrowserViewDelegate` 中的方法。
-```
+
+``` Objective-C
 - (void)webBrowserViewDidStartLoad:(SCWebBrowserView *)webBrowserView;
 - (void)webBrowserViewDidFinishLoad:(SCWebBrowserView *)webBrowserView;
 - (void)webBrowserView:(SCWebBrowserView *)webBrowserView didFailLoadWithError:(NSError *)error;
@@ -105,6 +122,18 @@ webBrowserView.allowsBackForwardNavigationGestures = YES;
 
 - (void)webBrowserView:(SCWebBrowserView *)webBrowserView didUpdateTitle:(nullable NSString *)title;
 - (void)webBrowserView:(SCWebBrowserView *)webBrowserView didUpdateProgress:(double)progress;
+```
+
+#### 5. 如果你需要针对通用业务逻辑做一些自定义处理，你可以自定义一个 `SCWebBrowserView` 的子类，然后根据需要重写（override）以下几个方法（[示例代码](https://github.com/ShannonChenCHN/SCWebBrowserView/blob/master/Objc/ObjcExample/SCCustomWebBrowserView.m)）：
+
+``` Objective-C
+- (void)didStartLoad NS_REQUIRES_SUPER;
+- (void)didFinishLoad NS_REQUIRES_SUPER;
+- (void)didFailLoadWithError:(NSError *)error NS_REQUIRES_SUPER;
+- (BOOL)shouldStartLoadWithRequest:(NSURLRequest *)request NS_REQUIRES_SUPER;
+
+- (void)didUpdateTitle:(nullable NSString *)title NS_REQUIRES_SUPER;
+- (void)didUpdateProgress:(double)progress NS_REQUIRES_SUPER;
 ```
 
 ## TODO
